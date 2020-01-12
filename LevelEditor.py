@@ -1,5 +1,5 @@
 if __name__ == "__main__":
-    from Main import tile_data, prop_data, enemy_data, dis_width, dis_height, tileGrid, white
+    from Main import tileData, propData, enemyData, dis_width, dis_height, tileGrid, white
     from pygame.locals import *
     import pygame as pg
     import math
@@ -12,16 +12,16 @@ if __name__ == "__main__":
     wall_placeholder = pg.image.load('textures/ui/wall placeholder.bmp')
 
     tile_list = [None]
-    for t in tile_data:
+    for t in tileData:
         if 'wall' not in t:
             tile_list.append(t)
 
     prop_list = [None]
-    for p in prop_data:
+    for p in propData:
         prop_list.append(p)
 
     enemy_list = []
-    for e in enemy_data:
+    for e in enemyData:
         enemy_list.append(e)
 
     # pygame window
@@ -80,7 +80,7 @@ if __name__ == "__main__":
             }
 
             palette = ['None']
-            for p in tile_data:
+            for p in tileData:
                 palette.append(p)
 
         def reinit(self):
@@ -212,38 +212,38 @@ if __name__ == "__main__":
             }
             for y, row in enumerate(self.tileMap):
                 for x, col in enumerate(row):
-                    if self.tileMap[y][x] in tile_data:
-                        if tile_data[self.tileMap[y][x]][1] == -1:
+                    if self.tileMap[y][x] in tileData:
+                        if tileData[self.tileMap[y][x]][1] == -1:
                             try:
-                                adj['up'] = True if tile_data[self.tileMap[y - 1][x]][1] == -1 else False
+                                adj['up'] = True if tileData[self.tileMap[y - 1][x]][1] == -1 else False
                             except (IndexError, KeyError):
                                 adj['up'] = False
                             try:
-                                adj['down'] = True if tile_data[self.tileMap[y + 1][x]][1] == -1 else False
+                                adj['down'] = True if tileData[self.tileMap[y + 1][x]][1] == -1 else False
                             except (IndexError, KeyError):
                                 adj['down'] = False
                             try:
-                                adj['left'] = True if tile_data[self.tileMap[y][x - 1]][1] == -1 else False
+                                adj['left'] = True if tileData[self.tileMap[y][x - 1]][1] == -1 else False
                             except (IndexError, KeyError):
                                 adj['left'] = False
                             try:
-                                adj['right'] = True if tile_data[self.tileMap[y][x + 1]][1] == -1 else False
+                                adj['right'] = True if tileData[self.tileMap[y][x + 1]][1] == -1 else False
                             except (IndexError, KeyError):
                                 adj['right'] = False
                             try:
-                                adj['nw'] = True if tile_data[self.tileMap[y - 1][x - 1]][1] == -1 else False
+                                adj['nw'] = True if tileData[self.tileMap[y - 1][x - 1]][1] == -1 else False
                             except (IndexError, KeyError):
                                 adj['nw'] = False
                             try:
-                                adj['ne'] = True if tile_data[self.tileMap[y - 1][x + 1]][1] == -1 else False
+                                adj['ne'] = True if tileData[self.tileMap[y - 1][x + 1]][1] == -1 else False
                             except (IndexError, KeyError):
                                 adj['ne'] = False
                             try:
-                                adj['sw'] = True if tile_data[self.tileMap[y + 1][x - 1]][1] == -1 else False
+                                adj['sw'] = True if tileData[self.tileMap[y + 1][x - 1]][1] == -1 else False
                             except (IndexError, KeyError):
                                 adj['sw'] = False
                             try:
-                                adj['se'] = True if tile_data[self.tileMap[y + 1][x + 1]][1] == -1 else False
+                                adj['se'] = True if tileData[self.tileMap[y + 1][x + 1]][1] == -1 else False
                             except (IndexError, KeyError):
                                 adj['se'] = False
                             up = adj['up']
@@ -307,19 +307,19 @@ if __name__ == "__main__":
             for y, row in enumerate(self.tileMap):
                 for x, col in enumerate(row):
                     try:
-                        app.blit(tile_data[col][0], (x * tileGrid, y * tileGrid))
+                        app.blit(tileData[col][0], (x * tileGrid, y * tileGrid))
                     except KeyError:
                         pass
             for y, row in enumerate(self.propMap):
                 for x, col in enumerate(row):
                     try:
-                        app.blit(prop_data[col], (x * tileGrid, y * tileGrid))
+                        app.blit(propData[col], (x * tileGrid, y * tileGrid))
                     except KeyError:
                         pass
             for y, row in enumerate(self.enemyMap):
                 for x, col in enumerate(row):
                     try:
-                        app.blit(enemy_data[col], (x * tileGrid, y * tileGrid))
+                        app.blit(enemyData[col], (x * tileGrid, y * tileGrid))
                     except KeyError:
                         pass
             if self.spawn != [-1, -1]:

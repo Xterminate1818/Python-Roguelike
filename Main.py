@@ -13,23 +13,23 @@ from pygame.locals import *
 random.seed()
 pg.init()
 
-rooms_dir = 'levels'
+roomsDirectory = 'levels'
 
-room_dir_list = []
+roomDirectoryList = []
 # r=root, d=directories, f = files
-for r, d, f in os.walk(rooms_dir):
+for r, d, f in os.walk(roomsDirectory):
     for file in f:
         if '.json' in file:
-            room_dir_list.append(os.path.join(r, file))
+            roomDirectoryList.append(os.path.join(r, file))
 
 # Props:
 chest = pg.image.load('textures/sprites/Props/chest_rare.bmp')
 
 ladder = pg.image.load('textures/sprites/Props/ladder.bmp')
 
-spike_regular = pg.image.load('textures/sprites/Props/spike_regular.bmp')
-spike_poison = pg.image.load('textures/sprites/Props/spike_poison.bmp')
-spike_cold = pg.image.load('textures/sprites/Props/spike_cold.bmp')
+spikeRegular = pg.image.load('textures/sprites/Props/spike_regular.bmp')
+spikePoison = pg.image.load('textures/sprites/Props/spike_poison.bmp')
+spikeCold = pg.image.load('textures/sprites/Props/spike_cold.bmp')
 
 # Dungeon tile set
 floorTile = pg.image.load('textures/tiles/Dungeon/floor.bmp')
@@ -87,28 +87,26 @@ fps = 60
 dis_width = 1024
 dis_height = 640
 app = pg.display.set_mode((dis_width, dis_height))
-play_area = pg.Rect(0, 0, dis_width, dis_height)
+playArea = pg.Rect(0, 0, dis_width, dis_height)
 tileGrid = 64
-path_subdivisions = 1
 
-pathGrid = tileGrid / path_subdivisions
-grid_width = int(dis_width / tileGrid)
-grid_height = int(dis_height / tileGrid)
+gridWidth = int(dis_width / tileGrid)
+gridHeight = int(dis_height / tileGrid)
 
-font_name = "freesansbold.ttf"
+fontName = "freesansbold.ttf"
 
 isPaused = False
 
 # Sprite imports
-flare_spell_image = pg.image.load("textures/projectiles/flare.bmp").convert_alpha()
-evil_eye = pg.image.load("textures/sprites/Enemies/eye.bmp").convert_alpha()
+flareSpell = pg.image.load("textures/projectiles/flare.bmp").convert_alpha()
+evilEye = pg.image.load("textures/sprites/Enemies/eye.bmp").convert_alpha()
 
 # UI imports
-heart_full = pg.image.load("textures/ui/full heart.bmp")
-heart_half = pg.image.load("textures/ui/half heart.bmp")
-heart_empty = pg.image.load("textures/ui/heart container.bmp")
+heartFull = pg.image.load("textures/ui/full heart.bmp")
+heartHalf = pg.image.load("textures/ui/half heart.bmp")
+heartEmpty = pg.image.load("textures/ui/heart container.bmp")
 
-empty_dungeon_tileMap = [
+emptyDungeonTileMap = [
     ['DUN wall topleft', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top',
      'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top',
      'DUN wall top', 'DUN wall topright'],
@@ -140,7 +138,7 @@ empty_dungeon_tileMap = [
      'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom',
      'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottomright']
 ]
-empty_propMap = [
+emptyPropMap = [
     ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
      'none', 'none', ],
     ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
@@ -162,7 +160,7 @@ empty_propMap = [
     ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
      'none', 'none', ],
 ]
-empty_pathMap = [
+emptyPathMap = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -174,7 +172,7 @@ empty_pathMap = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ]
-tile_data = {
+tileData = {
     'floor': [floorTile, 1],
     'drop': [drop, -1],
     'void': [void, -1],
@@ -210,31 +208,31 @@ tile_data = {
     'rightU': [rightU, -1],
     'leftU': [leftU, -1]
 }
-prop_data = {
-    'spike': spike_regular,
-    'cold spike': spike_cold,
-    'poison spike': spike_poison,
+propData = {
+    'spike': spikeRegular,
+    'cold spike': spikeCold,
+    'poison spike': spikePoison,
     'chest': chest,
 }
-enemy_data = {
-    'evil_eye': evil_eye
+enemyData = {
+    'evil_eye': evilEye
 }
 
-hazard_tiles = ['spike', 'cold spike', 'poison spike']
+hazardTiles = ['spike', 'cold spike', 'poison spike']
 
 
 # Room logic
 class Room:
     def __init__(self):
         self.room_list = []
-        for dir in room_dir_list:
+        for dir in roomDirectoryList:
             loaded_level = mpu.io.read(dir)
             self.room_list.append(loaded_level)
         self.current_room = random.choice(self.room_list)
         self.tileMap = self.current_room['tileMap']
         self.propMap = self.current_room['propMap']
         self.enemyMap = self.current_room['enemyMap']
-        self.pathMap = empty_pathMap
+        self.pathMap = emptyPathMap
         self.spawnPoint = self.current_room['spawn']
         self.exitPoint = self.current_room['exit']
         self.exitRect = pg.Rect(self.exitPoint[0] * tileGrid, self.exitPoint[1] * tileGrid, tileGrid, tileGrid)
@@ -265,7 +263,7 @@ class Room:
                     self.pathMap[y][x] = 0
                 else:
                     try:
-                        self.pathMap[y][x] = tile_data[col][1]
+                        self.pathMap[y][x] = tileData[col][1]
                         self.entity_collision.append(pg.Rect(x * tileGrid, y * tileGrid, tileGrid, tileGrid))
                         self.spell_collision.append(pg.Rect(x * tileGrid, y * tileGrid, tileGrid, tileGrid))
                     except KeyError:
@@ -273,7 +271,7 @@ class Room:
         self.hazard_rects = []
         for y, row in enumerate(self.propMap):
             for x, col in enumerate(row):
-                if col in hazard_tiles:
+                if col in hazardTiles:
                     self.hazard_rects.append([pg.Rect((x * tileGrid) + 15, (y * tileGrid) + 15,
                                                       tileGrid - 30, tileGrid - 30), col])
                     self.pathMap[y][x] = 0
@@ -287,13 +285,13 @@ class Room:
         for y, row in enumerate(self.tileMap):
             for x, col in enumerate(row):
                 try:
-                    app.blit(tile_data[col][0], (x * tileGrid, y * tileGrid))
+                    app.blit(tileData[col][0], (x * tileGrid, y * tileGrid))
                 except KeyError:
                     pass
         for y, row in enumerate(self.propMap):
             for x, col in enumerate(row):
                 try:
-                    app.blit(prop_data[col], (x * tileGrid, y * tileGrid))
+                    app.blit(propData[col], (x * tileGrid, y * tileGrid))
                 except KeyError:
                     pass
         for t in self.hazard_rects:
@@ -343,7 +341,7 @@ class Text:
         self.string = string
         self.color = _color
         self.size = size
-        self.font_obj = pg.font.Font(font_name, self.size)
+        self.font_obj = pg.font.Font(fontName, self.size)
         self.surf = self.font_obj.render(self.string, True, self.color)
         self.rect = self.surf.get_rect()
         self.rect.x = x
@@ -450,7 +448,7 @@ class Player:
         self.staffOffset = [54, -6]
         self.acceleration = 1
         self.speed = 6
-        self.spell = flare_spell
+        self.spell = flare
         self.lastSpell = appTime
         self.chargingSpell = False
         self.chargingStart = 0
@@ -469,9 +467,9 @@ class Player:
     def draw(self):
         app.blit(self.image, (self.rect.x, self.rect.y))
         for n in range(self.maxHealth):
-            app.blit(heart_empty, (n * tileGrid, 0))
+            app.blit(heartEmpty, (n * tileGrid, 0))
         for n in (range(self.health)):
-            app.blit(heart_full, (n * tileGrid, 0))
+            app.blit(heartFull, (n * tileGrid, 0))
         print(self.health)
 
     @staticmethod
@@ -569,7 +567,7 @@ class Spell:
         for n in self.instances:
             n[0].centerx += int(n[1][0])
             n[0].centery += int(n[1][1])
-            if not n[0].colliderect(play_area):
+            if not n[0].colliderect(playArea):
                 self.instances.remove(n)
             for c in Spell.collision:
                 if n[0].colliderect(c) and n in self.instances:
@@ -597,7 +595,7 @@ class Spell:
 
 
 # image, speed, rate, damage, range
-flare_spell = Spell(flare_spell_image, 20, 0.4, 1, 5)
+flare = Spell(flareSpell, 20, 0.4, 1, 5)
 
 
 class Enemy:
@@ -605,7 +603,7 @@ class Enemy:
     collision = r.entity_collision
     types = {
         # image, health, speed
-        'evil_eye': [evil_eye, 5, 4]
+        'evil_eye': [evilEye, 5, 4]
     }
 
     def __init__(self, type, gridx, gridy):
