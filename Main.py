@@ -1,13 +1,15 @@
-import pygame as pg
-from pygame.locals import *
+import math
+import os
+import random
 import sys
 import time
-import math
-import random
-import os
+
 import mpu
+import pygame as pg
 from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder
+from pygame.locals import *
+
 random.seed()
 pg.init()
 
@@ -22,7 +24,6 @@ for r, d, f in os.walk(rooms_dir):
 
 # Props:
 chest = pg.image.load('textures/sprites/Props/chest_rare.bmp')
-
 
 ladder = pg.image.load('textures/sprites/Props/ladder.bmp')
 
@@ -108,40 +109,70 @@ heart_half = pg.image.load("textures/ui/half heart.bmp")
 heart_empty = pg.image.load("textures/ui/heart container.bmp")
 
 empty_dungeon_tileMap = [
-['DUN wall topleft', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall topright'],
-['DUN wall left', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall right'],
-['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
-['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
-['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
-['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
-['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
-['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
-['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
-['DUN wall bottomleft', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottomright']
+    ['DUN wall topleft', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top',
+     'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top',
+     'DUN wall top', 'DUN wall topright'],
+    ['DUN wall left', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner',
+     'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner',
+     'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall right'],
+    ['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
+     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
+     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
+    ['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
+     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
+     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
+    ['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
+     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
+     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
+    ['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
+     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
+     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
+    ['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
+     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
+     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
+    ['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
+     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
+     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
+    ['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
+     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
+     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
+    ['DUN wall bottomleft', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom',
+     'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom',
+     'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottomright']
 ]
 empty_propMap = [
-['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', ],
-['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', ],
-['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', ],
-['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', ],
-['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', ],
-['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', ],
-['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', ],
-['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', ],
-['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', ],
-['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', ],
-                 ]
+    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
+     'none', 'none', ],
+    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
+     'none', 'none', ],
+    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
+     'none', 'none', ],
+    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
+     'none', 'none', ],
+    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
+     'none', 'none', ],
+    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
+     'none', 'none', ],
+    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
+     'none', 'none', ],
+    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
+     'none', 'none', ],
+    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
+     'none', 'none', ],
+    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
+     'none', 'none', ],
+]
 empty_pathMap = [
-[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ]
 tile_data = {
     'floor': [floorTile, 1],
@@ -243,7 +274,7 @@ class Room:
         for y, row in enumerate(self.propMap):
             for x, col in enumerate(row):
                 if col in hazard_tiles:
-                    self.hazard_rects.append([pg.Rect((x * tileGrid) + 15,(y * tileGrid) + 15,
+                    self.hazard_rects.append([pg.Rect((x * tileGrid) + 15, (y * tileGrid) + 15,
                                                       tileGrid - 30, tileGrid - 30), col])
                     self.pathMap[y][x] = 0
 
@@ -287,7 +318,7 @@ def collide(rect, tiles):
 
 
 # Move rect to position, snaps to collision
-def phys_move(rect, vector, tiles): # Movement in list format [10, 10]
+def phys_move(rect, vector, tiles):  # Movement in list format [10, 10]
     rect.centerx += int(vector[0])
     collisions = collide(rect, tiles)
     for tile in collisions:
@@ -667,6 +698,7 @@ if __name__ == "__main__":
     # Spawn enemies
     Enemy.level_spawn()
 
+
     def draw_scene():
         r.draw()
         Player.draw_all()
@@ -674,15 +706,19 @@ if __name__ == "__main__":
         Particle.draw_all()
         Spell.draw_all()
 
+
     def move_entities():
         Player.move_all()
         Enemy.move_all()
         Spell.move_all()
 
+
     def update_scene():
         Player.update_all()
         Enemy.update_all()
         Particle.update_all()
+
+
     # Game Loop
     while True:
         appTime = time.time() - start_time
