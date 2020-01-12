@@ -1,5 +1,5 @@
 if __name__ == "__main__":
-    from Main import tileData, propData, enemyData, dis_width, dis_height, tileGrid, white
+    from Main import tileData, propData, enemyData, dis_width, dis_height, tileGrid, white, gridWidth, gridHeight
     from pygame.locals import *
     import pygame as pg
     import math
@@ -246,6 +246,22 @@ if __name__ == "__main__":
                                 adj['se'] = True if tileData[self.tileMap[y + 1][x + 1]][1] == -1 else False
                             except (IndexError, KeyError):
                                 adj['se'] = False
+                            if y + 1 > gridHeight - 1:
+                                adj['down'] = True
+                                adj['se'] = True
+                                adj['sw'] = True
+                            if y - 1 < 0:
+                                adj['up'] = True
+                                adj['ne'] = True
+                                adj['nw'] = True
+                            if x + 1 > gridWidth - 1:
+                                adj['right'] = True
+                                adj['ne'] = True
+                                adj['se'] = True
+                            if x - 1 < 0:
+                                adj['left'] = True
+                                adj['nw'] = True
+                                adj['sw'] = True
                             up = adj['up']
                             down = adj['down']
                             left = adj['left']
@@ -257,9 +273,45 @@ if __name__ == "__main__":
                             if not up and not down and not left and not right and not nw and not ne and not se and not nw:
                                 self.tileMap[y][x] = 'fourWalls'
                             if up and down and right and left and not ne and not nw and not se and not sw:
-                                self.tileMap[y][x] = ''
+                                self.tileMap[y][x] = 'fourSplit'
                             if up and down and right and left and ne and nw and se and sw:
                                 self.tileMap[y][x] = 'void'
+                            if not up and down and not right and not left:
+                                self.tileMap[y][x] = 'upU'
+                            if up and not down and not right and not left:
+                                self.tileMap[y][x] = 'downU'
+                            if not up and not down and right and not left:
+                                self.tileMap[y][x] = 'rightU'
+                            if not up and not down and not right and left:
+                                self.tileMap[y][x] = 'leftU'
+                            if up and not down and left and right:
+                                self.tileMap[y][x] = 'southWall'
+                            if not up and down and left and right:
+                                self.tileMap[y][x] = 'northWall'
+                            if up and down and left and not right:
+                                self.tileMap[y][x] = 'westWall'
+                            if up and down and not left and right:
+                                self.tileMap[y][x] = 'eastWall'
+                            if up and down and left and right and not se and sw and ne and nw:
+                                self.tileMap[y][x] = 'extCorner1'
+                            if up and down and left and right and not sw and se and ne and nw:
+                                self.tileMap[y][x] = 'extCorner2'
+                            if up and down and left and right and not ne and sw and se and nw:
+                                self.tileMap[y][x] = 'extCorner3'
+                            if up and down and left and right and not nw and ne and se and sw:
+                                self.tileMap[y][x] = 'extCorner4'
+                            if not up and down and right and not left:
+                                self.tileMap[y][x] = 'intCorner1'
+                            if not up and down and not right and left:
+                                self.tileMap[y][x] = 'intCorner2'
+                            if up and not down and right and not left:
+                                self.tileMap[y][x] = 'intCorner3'
+                            if up and not down and not right and left:
+                                self.tileMap[y][x] = 'intCorner4'
+
+
+
+
 
         def run(self):
             root.update()
