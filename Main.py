@@ -1,5 +1,5 @@
 from init import *
-
+from Entities import *
 
 # Room logic
 class Room:
@@ -85,87 +85,6 @@ class Room:
 
 r = Room()
 
-
-class Enemy:
-    instances = []
-    collision = r.entity_collision
-    types = {
-        # image, health, speed
-        'evil_eye': [evilEye, 5, 4]
-    }
-
-    def __init__(self, type, gridx, gridy):
-        self.image = Enemy.types[type][0]
-        self.type = type
-        self.speed = 4
-        self.health = 5
-        self.vector = [0, 0]
-        self.x = gridx * tileGrid
-        self.y = gridy * tileGrid
-        self.path = []
-        self.width, self.height = self.image.get_size()
-        self.rect = pg.Rect(self.x, self.y, self.width, self.height)
-        self.destination = [0, 0]
-        self.moveCD = 1
-        self.lastMove = appTime
-
-    def draw(self):
-        app.blit(self.image, (self.rect.x, self.rect.y))
-
-    def pathfind(self, target):
-        # A* algorithm
-        grid = Grid(matrix=r.pathMap)
-        start = grid.node(math.floor(self.rect.centerx / tileGrid), math.floor(self.rect.centery / tileGrid))
-        end = grid.node(math.floor(target.rect.x / tileGrid), math.floor(target.rect.y / tileGrid))
-        finder = AStarFinder()
-        path, runs = finder.find_path(start, end, grid)
-        if len(path) > 1:
-            self.destination = [path[1][0] * tileGrid, path[1][1] * tileGrid]
-        elif len(path) != 0:
-            self.destination = [path[0][0] * tileGrid, path[0][1] * tileGrid]
-
-    def move(self):
-        radians = math.atan2(self.destination[1] - self.rect.y, self.destination[0] - self.rect.x)
-        dx = math.cos(radians) * self.speed
-        dy = math.sin(radians) * self.speed
-        self.rect = phys_move(self.rect, [dx, dy], [])
-
-    def update(self):
-        Enemy.collision = r.entity_collision
-        self.x = self.rect.x
-        self.y = self.rect.y
-        if self.health <= 0:
-            Enemy.instances.remove(self)
-        if [self.rect.x, self.rect.y] == self.destination or self.path == []:
-            self.pathfind(p)
-
-    @staticmethod
-    def level_spawn():
-        for y, row in enumerate(r.enemyMap):
-            for x, col in enumerate(row):
-                if col in Enemy.types:
-                    Enemy.spawn(str(col), x, y)
-
-    @staticmethod
-    def draw_all():
-        for z in Enemy.instances:
-            z.draw()
-
-    @staticmethod
-    def update_all():
-        for z in Enemy.instances:
-            z.update()
-
-    @staticmethod
-    def move_all():
-        for z in Enemy.instances:
-            z.move()
-
-    @staticmethod
-    def spawn(type, gridx, gridy):
-        Enemy.instances.append(Enemy(type, gridx, gridy))
-
-
 # Game init
 if __name__ == "__main__":
     # Init clock
@@ -181,29 +100,6 @@ if __name__ == "__main__":
     mouseReleased = False
     mouseHeld = False
     mouseLast = False
-    # Spawn enemies
-    Enemy.level_spawn()
-
-
-    def draw_scene():
-        r.draw()
-        Player.draw_all()
-        Enemy.draw_all()
-        Particle.draw_all()
-        Spell.draw_all()
-
-
-    def move_entities():
-        Player.move_all()
-        Enemy.move_all()
-        Spell.move_all()
-
-
-    def update_scene():
-        Player.update_all()
-        Enemy.update_all()
-        Particle.update_all()
-
 
     # Game Loop
     while True:
@@ -225,13 +121,6 @@ if __name__ == "__main__":
                     p.left = True
                 if e.key == K_d:
                     p.right = True
-                # Pause
-                if e.key == K_ESCAPE:
-                    isPaused = not isPaused
-                if e.key == K_SPACE:
-                    r.random()
-                    p.rect.x, p.rect.y = r.get_spawn()
-                    Enemy.level_spawn()
 
             if e.type == KEYUP:
                 if e.key == K_w:
@@ -242,33 +131,24 @@ if __name__ == "__main__":
                     p.left = False
                 if e.key == K_d:
                     p.right = False
-                if e.key == K_z:
-                    Enemy.spawn('evil_eye', mouseGridLoc[0], mouseGridLoc[1])
-                if e.key == K_p:
-                    for e in Enemy.instances:
-                        print(e.destination)
+
             mousePressed = False
             mouseReleased = False
             mouseHeld = False
-
             if pg.mouse.get_pressed()[0] == 1:
                 mouseHeld = True
             if pg.mouse.get_pressed()[0] == 1 and not mouseLast:
                 mousePressed = True
             if pg.mouse.get_pressed()[0] == 0 and mouseLast:
                 mouseReleased = True
-
             mouseLast = pg.mouse.get_pressed()
-
-        if not isPaused:
-            update_scene()
 
         if p.rect.colliderect(r.exitRect) and r.exit_open:
             r.random()
             p.rect.x, p.rect.y = r.get_spawn()
             Enemy.level_spawn()
 
-        draw_scene()
-        move_entities()
+        Entity.tick_all()
+
         pg.display.update()
         clock.tick(fps)

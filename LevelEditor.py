@@ -1,3 +1,12 @@
+class Grid:
+    def __init__(self, xsize, ysize, content):
+        self.grid = []
+        for y in range(ysize):
+            self.grid.append([])
+            for x in y:
+                y.append([])
+
+
 if __name__ == "__main__":
     from init import *
     from pygame.locals import *
