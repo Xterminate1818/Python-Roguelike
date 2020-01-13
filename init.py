@@ -3,6 +3,8 @@ import os
 import random
 import sys
 import time
+import gc
+import weakref
 
 import mpu
 import pygame as pg
@@ -12,6 +14,15 @@ from pygame.locals import *
 
 random.seed()
 pg.init()
+
+
+def vector(pos1, pos2):
+    radians = math.atan2(pos2[1] - pos1[1], pos2[0] - pos1[0])
+    dx = math.cos(radians)
+    dy = math.sin(radians)
+    return dx, dy
+
+
 
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -108,7 +119,7 @@ leftU = pg.transform.flip(rightU, True, False)
 isPaused = False
 
 # Sprite imports
-flareSpell = pg.image.load("textures/projectiles/flare.bmp").convert_alpha()
+fireSpell = pg.image.load("textures/projectiles/flare.bmp").convert_alpha()
 evilEye = pg.image.load("textures/sprites/Enemies/eye.bmp").convert_alpha()
 
 # UI imports
