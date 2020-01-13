@@ -74,6 +74,11 @@ extCorner2 = pg.transform.flip(extCorner1, True, False)
 extCorner3 = pg.transform.flip(extCorner1, False, True)
 extCorner4 = pg.transform.flip(extCorner2, False, True)
 
+extDoubleCorner1 = pg.image.load('textures/tiles/Dungeon/extdoublecorner.bmp')
+extDoubleCorner2 = pg.transform.rotate(extDoubleCorner1, 90)
+extDoubleCorner3 = pg.transform.rotate(extDoubleCorner2, 90)
+extDoubleCorner4 = pg.transform.rotate(extDoubleCorner3, 90)
+
 intCorner1 = pg.image.load('textures/tiles/Dungeon/intcorner.bmp')
 intCorner2 = pg.transform.flip(intCorner1, True, False)
 intCorner3 = pg.transform.flip(intCorner1, False, True)
@@ -83,11 +88,16 @@ rSplit1 = pg.image.load('textures/tiles/Dungeon/rsplit.bmp')
 rSplit2 = pg.transform.flip(rSplit1, True, False)
 rSplit3 = pg.transform.flip(rSplit1, False, True)
 rSplit4 = pg.transform.flip(rSplit2, False, True)
+rSplit5 = pg.transform.rotate(rSplit1, 90)
+rSplit6 = pg.transform.flip(rSplit5, True, False)
+rSplit7 = pg.transform.flip(rSplit5, False, True)
+rSplit8 = pg.transform.flip(rSplit7, True, False)
+
 
 tSplit1 = pg.image.load('textures/tiles/Dungeon/tsplit.bmp')
-tSplit2 = pg.transform.flip(tSplit1, True, False)
-tSplit3 = pg.transform.flip(tSplit1, False, True)
-tSplit4 = pg.transform.flip(tSplit2, False, True)
+tSplit2 = pg.transform.rotate(tSplit1, 90)
+tSplit3 = pg.transform.rotate(tSplit2, 90)
+tSplit4 = pg.transform.rotate(tSplit3, 90)
 
 upU = pg.image.load('textures/tiles/Dungeon/u.bmp')
 downU = pg.transform.flip(upU, False, True)
@@ -174,7 +184,7 @@ emptyPathMap = [
 ]
 tileData = {
     'floor': [floorTile, 1],
-    'drop': [drop, -1],
+    'drop': [drop, 0],
     'void': [void, -1],
     'fourWalls': [fourWalls, -1],
     'fourSplit': [fourSplit, -1],
@@ -192,6 +202,10 @@ tileData = {
     'extCorner2': [extCorner2, -1],
     'extCorner3': [extCorner3, -1],
     'extCorner4': [extCorner4, -1],
+    'extDoubleCorner1': [extDoubleCorner1, -1],
+    'extDoubleCorner2': [extDoubleCorner2, -1],
+    'extDoubleCorner3': [extDoubleCorner3, -1],
+    'extDoubleCorner4': [extDoubleCorner4, -1],
     'intCorner1': [intCorner1, -1],
     'intCorner2': [intCorner2, -1],
     'intCorner3': [intCorner3, -1],
@@ -200,7 +214,11 @@ tileData = {
     'rSplit2': [rSplit2, -1],
     'rSplit3': [rSplit3, -1],
     'rSplit4': [rSplit4, -1],
-    'tSplit1': [rSplit1, -1],
+    'rSplit5': [rSplit5, -1],
+    'rSplit6': [rSplit6, -1],
+    'rSplit7': [rSplit7, -1],
+    'rSplit8': [rSplit8, -1],
+    'tSplit1': [tSplit1, -1],
     'tSplit2': [tSplit2, -1],
     'tSplit3': [tSplit3, -1],
     'tSplit4': [tSplit4, -1],

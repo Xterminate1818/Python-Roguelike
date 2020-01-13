@@ -1,5 +1,5 @@
 if __name__ == "__main__":
-    from Main import tileData, propData, enemyData, dis_width, dis_height, tileGrid, white, gridWidth, gridHeight
+    from init import *
     from pygame.locals import *
     import pygame as pg
     import math
@@ -308,16 +308,57 @@ if __name__ == "__main__":
                                 self.tileMap[y][x] = 'intCorner3'
                             if up and not down and not right and left:
                                 self.tileMap[y][x] = 'intCorner4'
-
-
-
-
+                            if up and down and not right and not left:
+                                self.tileMap[y][x] = 'doubleVertWalls'
+                            if not up and not down and right and left:
+                                self.tileMap[y][x] = 'doubleHorWalls'
+                            if not up and down and right and not left and not se and not sw and not ne and not nw:
+                                self.tileMap[y][x] = 'doubleCorner1'
+                            if not up and down and not right and left and not se and not sw and not ne and not nw:
+                                self.tileMap[y][x] = 'doubleCorner2'
+                            if up and not down and right and not left and not se and not sw and not ne and not nw:
+                                self.tileMap[y][x] = 'doubleCorner3'
+                            if up and not down and not right and left and not se and not sw and not ne and not nw:
+                                self.tileMap[y][x] = 'doubleCorner4'
+                            if not up and down and right and left and not se and not sw:
+                                self.tileMap[y][x] = 'tSplit1'
+                            if up and down and right and not left and not ne and not se:
+                                self.tileMap[y][x] = 'tSplit2'
+                            if up and not down and right and left and not ne and not nw:
+                                self.tileMap[y][x] = 'tSplit3'
+                            if up and down and not right and left and not nw and not sw:
+                                self.tileMap[y][x] = 'tSplit4'
+                            if up and down and right and not left and not ne:
+                                self.tileMap[y][x] = 'rSplit1'
+                            if up and down and not right and left and not nw:
+                                self.tileMap[y][x] = 'rSplit2'
+                            if up and down and right and not left and not se:
+                                self.tileMap[y][x] = 'rSplit3'
+                            if up and down and not right and left and not sw:
+                                self.tileMap[y][x] = 'rSplit4'
+                            if up and not down and left and right and ne and not nw:
+                                self.tileMap[y][x] = 'rSplit5'
+                            if up and not down and left and right and nw and not ne:
+                                self.tileMap[y][x] = 'rSplit6'
+                            if not up and down and left and right and se and not sw:
+                                self.tileMap[y][x] = 'rSplit7'
+                            if not up and down and left and right and sw and not se:
+                                self.tileMap[y][x] = 'rSplit8'
+                            if up and down and left and right and not se and not sw and nw and ne:
+                                self.tileMap[y][x] = 'extDoubleCorner1'
+                            if up and down and left and right and not se and not ne and sw and nw:
+                                self.tileMap[y][x] = 'extDoubleCorner2'
+                            if up and down and left and right and not nw and not ne and se and sw:
+                                self.tileMap[y][x] = 'extDoubleCorner3'
+                            if up and down and left and right and se and ne and not sw and not nw:
+                                self.tileMap[y][x] = 'extDoubleCorner4'
 
         def run(self):
             root.update()
             mouseLoc = pg.mouse.get_pos()
             mousePressed = pg.mouse.get_pressed()
             for e in pg.event.get():
+                self.smart_walls()
                 if e.type == QUIT:
                     pg.quit()
                     sys.exit()
