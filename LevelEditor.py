@@ -1,15 +1,96 @@
-class Grid:
-    def __init__(self, xsize, ysize, content):
+class Matrix:
+
+    def __init__(self, xsize, ysize):
         self.grid = []
-        for y in range(ysize):
+        _col = []
+        for n in range(ysize):
             self.grid.append([])
-            for x in y:
-                y.append([])
+        for y in range(len(self.grid)):
+            for n in range(xsize):
+                self.grid[y].append(None)
+
+    def print(self):
+        print(self.grid)
+
+    def clear(self):
+        for y in range(self.height):
+            for x in range(self.width):
+                self.grid[y][x] = None
+
+    def fill(self, content):
+        for y in range(self.height):
+            for x in range(self.width):
+                self.grid[y][x] = content
+
+    def set(self, x, y, content):
+        self.grid[y][x] = content
+        print('set')
+
+    def reset(self):
+        self.grid = self.gridOriginal
+
+    def __getitem__(self, y):
+        return self.grid[y]
+
+
+class Room:
+    _instances = set()
+    current = None
+
+    def __init__(self, file):
+        self.file = mpu.io.read(file)
+        self.dict = dict(self.file)
+
+        self.tileMap = self.dict['tileMap']
+        self.propMap = self.dict['propMap']
+        self.enemyMap = self.dict['enemyMap']
+
+        if len(self.tileMap) != len(self.propMap) != len(self.enemyMap):
+            raise ValueError('Map sizes are not uniform (y dimension)')
+        if len(self.tileMap[0]) != len(self.propMap[0]) != len(self.enemyMap[0]):
+            raise ValueError('Map sizes are not uniform (x dimension)')
+
+        self.width = len(self.tileMap)
+        self.height = len(self.tileMap[0])
+
+        self.pathMap = Matrix(self.width, self.height, 1)
+        self.spawnPoint = self.dict['spawn']
+        self.exitPoint = self.dict['exit']
+        self.exit_open = False
+        self.collision = []
+        self._instances.add(weakref.ref(self))
+
+        for y, row in enumerate(self.tileMap):
+            for x, col in enumerate(row):
+                try:
+                    self.pathMap[y][x] = tileData[col][1]
+                    self.collision.append(pg.Rect(x * tileGrid, y * tileGrid, tileGrid, tileGrid))
+                except KeyError:
+                    pass
+        if Room.current is None:
+            Room.current = self
+
+    @classmethod
+    def get_instances(cls):
+        dead = set()
+        for ref in cls._instances:
+            obj = ref()
+            if obj is not None:
+                yield obj
+            else:
+                dead.add(ref)
+        cls._instances -= dead
 
 
 if __name__ == "__main__":
     from init import *
     from pygame.locals import *
+
+    test = Matrix(2, 2)
+    test.print()
+    test.set(0, 0, False)
+    test.print()
+
     import pygame as pg
     import math
     from tkinter import *
@@ -20,20 +101,19 @@ if __name__ == "__main__":
     exit_icon = pg.image.load('textures/ui/exit icon.bmp')
     wall_placeholder = pg.image.load('textures/ui/wall placeholder.bmp')
 
-    tile_list = [None]
+    tile_list = []
     for t in tileData:
-        if 'wall' not in t:
+        if tileData[t][1] != -1:
             tile_list.append(t)
 
     prop_list = [None]
     for p in propData:
         prop_list.append(p)
 
-    enemy_list = []
+    enemy_list = [None]
     for e in enemyData:
         enemy_list.append(e)
 
-    # pygame window
     pg.display.set_caption("Preview")
     app = pg.display.set_mode((dis_width, dis_height))
     clock = pg.time.Clock()
@@ -43,40 +123,9 @@ if __name__ == "__main__":
         def __init__(self):
             self.tile_x = 0
             self.tile_y = 0
-            self.tileMap = [
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]]
-            self.propMap = [
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]]
-            self.enemyMap = [
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]
-            ]
+            self.tileMap = Matrix(gridWidth, gridHeight)
+            self.propMap = Matrix(gridWidth, gridHeight)
+            self.enemyMap = Matrix(gridWidth, gridHeight)
             self.spawn = [-1, -1]
             self.exit = [-1, -1]
             self.selectedTile = None
@@ -88,111 +137,37 @@ if __name__ == "__main__":
                 'exit': self.exit
             }
 
-            palette = ['None']
-            for p in tileData:
-                palette.append(p)
-
-        def reinit(self):
-            self.levelInfo = {
-                'tileMap': self.tileMap,
-                'propMap': self.propMap,
-                'enemyMap': self.enemyMap,
-                'spawn': self.spawn,
-                'exit': self.exit
-            }
-
         def clear_room(self):
-            ask_ifclear = messagebox.askyesno('Clear', 'Clear all ' + add_type.get() + ' instances?')
-            if ask_ifclear == 1:
+            askIfClear = messagebox.askyesno('Clear', 'Clear all ' + add_type.get() + ' instances?')
+            if askIfClear == 1:
                 if add_type.get() == 'tile' or add_type.get() == 'wall':
-                    self.tileMap = [
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None]]
+                    self.tileMap = Matrix(gridWidth, gridHeight, None)
                 elif add_type.get() == 'prop':
-                    self.propMap = [
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None]]
+                    self.propMap = Matrix(gridWidth, gridHeight, None)
                 elif add_type.get() == 'enemy':
-                    self.enemyMap = [
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                         None],
-                        [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]
-                    ]
+                    self.enemyMap = Matrix(gridWidth, gridHeight, None)
                 elif add_type.get() == 'spawn':
                     self.spawn = [-1, -1]
                 elif add_type.get() == 'exit':
                     self.exit = [-1, -1]
 
-        def fill_room(self, object):
+        def fill_room(self, obj):
             for y, row in enumerate(self.tileMap):
                 for x, col in enumerate(row):
                     if add_type.get() == 'tile' or 'wall':
-                        self.tileMap[y][x] = object
+                        self.tileMap[y][x] = obj
                     if add_type.get() == 'prop':
-                        self.propMap[y][x] = object
+                        self.propMap[y][x] = obj
                     if add_type.get() == 'enemy':
-                        self.enemyMap[y][x] = object
+                        self.enemyMap[y][x] = obj
 
         def save_room(self):
-            self.reinit()
             file_dir = 'levels/' + level_name_entry.get() + '.json'
             if file_dir == 'levels/.json':
                 messagebox.showerror('Error', 'Filename cannot be empty')
             else:
-                ask_ifsave = messagebox.askyesno('Save', 'Save current room as ' + level_name_entry.get() + '?')
-                if ask_ifsave == 1:
+                askIfSave = messagebox.askyesno('Save', 'Save current room as ' + level_name_entry.get() + '?')
+                if askIfSave == 1:
                     print('save')
                     mpu.io.write(file_dir, self.levelInfo)
 
@@ -373,51 +348,35 @@ if __name__ == "__main__":
                     sys.exit()
                 if e.type == KEYUP:
                     if e.key == K_p:
-                        self.smart_walls()
+                        self.tileMap.print()
 
             if mousePressed[0] == 1:
-                if add_type.get() == 'tile' or add_type.get() == 'wall' and self.selectedTile is not None:
-                    tile_x = math.floor(mouseLoc[0] / tileGrid)
-                    tile_y = math.floor(mouseLoc[1] / tileGrid)
-                    try:
-                        self.tileMap[tile_y][tile_x] = self.selectedTile
-                    except IndexError:
-                        pass
-                if add_type.get() == 'prop':
-                    prop_x = math.floor(mouseLoc[0] / tileGrid)
-                    prop_y = math.floor(mouseLoc[1] / tileGrid)
-                    try:
-                        self.propMap[prop_y][prop_x] = self.selectedTile
-                    except IndexError:
-                        pass
-                if add_type.get() == 'enemy':
-                    enemy_x = math.floor(mouseLoc[0] / tileGrid)
-                    enemy_y = math.floor(mouseLoc[1] / tileGrid)
-                    try:
-                        self.enemyMap[enemy_y][enemy_x] = self.selectedTile
-                    except IndexError:
-                        pass
+                tile_x = math.floor(mouseLoc[0] / tileGrid)
+                tile_y = math.floor(mouseLoc[1] / tileGrid)
+                if add_type.get() == 'tile':
+                    self.tileMap.set(tile_x, tile_y, 'floor')
                 if add_type.get() == 'spawn':
-                    spawn_x = math.floor(mouseLoc[0] / tileGrid)
-                    spawn_y = math.floor(mouseLoc[1] / tileGrid)
-                    self.spawn = [spawn_x, spawn_y]
+                    self.spawn = [tile_x, tile_y]
                 if add_type.get() == 'exit':
                     exit_x = math.floor(mouseLoc[0] / tileGrid)
                     exit_y = math.floor(mouseLoc[1] / tileGrid)
                     self.exit = [exit_x, exit_y]
             app.fill(white)
+            # Display tiles
             for y, row in enumerate(self.tileMap):
                 for x, col in enumerate(row):
                     try:
                         app.blit(tileData[col][0], (x * tileGrid, y * tileGrid))
                     except KeyError:
                         pass
+            # Display props
             for y, row in enumerate(self.propMap):
                 for x, col in enumerate(row):
                     try:
                         app.blit(propData[col], (x * tileGrid, y * tileGrid))
                     except KeyError:
                         pass
+            # Display enemies
             for y, row in enumerate(self.enemyMap):
                 for x, col in enumerate(row):
                     try:
@@ -429,6 +388,14 @@ if __name__ == "__main__":
             self.selectedTile = selection.get()
             if self.exit != [-1, -1]:
                 app.blit(exit_icon, (self.exit[0] * tileGrid, self.exit[1] * tileGrid))
+
+            self.levelInfo = {
+                'tileMap': self.tileMap,
+                'propMap': self.propMap,
+                'enemyMap': self.enemyMap,
+                'spawn': self.spawn,
+                'exit': self.exit
+            }
             pg.display.flip()
             clock.tick(60)
 
@@ -440,11 +407,11 @@ if __name__ == "__main__":
         if add_type.get() == 'tile':
             selector = OptionMenu(painting_frame, selection, *tile_list)
             selector.grid(row=2, column=0, columnspan=2)
+        elif add_type.get() == 'wall':
+            selector = OptionMenu(painting_frame, selection, *['Wall'])
+            selector.grid(row=2, column=0, columnspan=2)
         elif add_type.get() == 'prop':
             selector = OptionMenu(painting_frame, selection, *prop_list)
-            selector.grid(row=2, column=0, columnspan=2)
-        elif add_type.get() == 'wall':
-            selector = OptionMenu(painting_frame, selection, *[wall_placeholder])
             selector.grid(row=2, column=0, columnspan=2)
         elif add_type.get() == 'enemy':
             selector = OptionMenu(painting_frame, selection, *enemy_list)

@@ -1,7 +1,7 @@
 from init import *
 from Entities import *
 
-# Room logic
+
 class Room:
     def __init__(self):
         self.room_list = []

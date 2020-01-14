@@ -22,6 +22,7 @@ def vector(pos1, pos2):
     dy = math.sin(radians)
     return dx, dy
 
+
 black = (0, 0, 0)
 white = (255, 255, 255)
 red = (255, 0, 0)
@@ -125,72 +126,6 @@ heartFull = pg.image.load("textures/ui/full heart.bmp")
 heartHalf = pg.image.load("textures/ui/half heart.bmp")
 heartEmpty = pg.image.load("textures/ui/heart container.bmp")
 
-emptyDungeonTileMap = [
-    ['DUN wall topleft', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top',
-     'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top', 'DUN wall top',
-     'DUN wall top', 'DUN wall topright'],
-    ['DUN wall left', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner',
-     'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall inner',
-     'DUN wall inner', 'DUN wall inner', 'DUN wall inner', 'DUN wall right'],
-    ['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
-     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
-     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
-    ['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
-     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
-     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
-    ['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
-     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
-     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
-    ['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
-     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
-     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
-    ['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
-     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
-     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
-    ['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
-     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
-     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
-    ['DUN wall left', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
-     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN base tile',
-     'DUN base tile', 'DUN base tile', 'DUN base tile', 'DUN wall right'],
-    ['DUN wall bottomleft', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom',
-     'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom',
-     'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottom', 'DUN wall bottomright']
-]
-emptyPropMap = [
-    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
-     'none', 'none', ],
-    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
-     'none', 'none', ],
-    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
-     'none', 'none', ],
-    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
-     'none', 'none', ],
-    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
-     'none', 'none', ],
-    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
-     'none', 'none', ],
-    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
-     'none', 'none', ],
-    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
-     'none', 'none', ],
-    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
-     'none', 'none', ],
-    ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none',
-     'none', 'none', ],
-]
-emptyPathMap = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-]
 tileData = {
     'floor': [floorTile, 1],
     'drop': [drop, 0],
