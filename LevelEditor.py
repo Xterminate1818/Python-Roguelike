@@ -1,3 +1,4 @@
+from init import *
 class Matrix:
 
     def __init__(self, xsize, ysize):
@@ -8,6 +9,8 @@ class Matrix:
         for y in range(len(self.grid)):
             for n in range(xsize):
                 self.grid[y].append(None)
+        self.width = len(self.grid)
+        self.height = len(self.grid[0])
 
     def print(self):
         print(self.grid)
@@ -15,12 +18,12 @@ class Matrix:
     def clear(self):
         for y in range(self.height):
             for x in range(self.width):
-                self.grid[y][x] = None
+                self.grid[x][y] = None
 
     def fill(self, content):
         for y in range(self.height):
             for x in range(self.width):
-                self.grid[y][x] = content
+                self.grid[x][y] = content
 
     def set(self, x, y, content):
         self.grid[y][x] = content
@@ -32,18 +35,27 @@ class Matrix:
     def __getitem__(self, y):
         return self.grid[y]
 
+    def __len__(self):
+        return len(self.grid)
+
+    def replace(self, matrix):
+        self.grid = matrix
+
 
 class Room:
     _instances = set()
-    current = None
+    _instancelist = []
 
     def __init__(self, file):
         self.file = mpu.io.read(file)
         self.dict = dict(self.file)
 
-        self.tileMap = self.dict['tileMap']
-        self.propMap = self.dict['propMap']
-        self.enemyMap = self.dict['enemyMap']
+        self.tileMap = Matrix(gridWidth, gridHeight)
+        self.tileMap.replace(self.dict['tileMap'])
+        self.propMap = Matrix(gridWidth, gridHeight)
+        self.propMap.replace(self.dict['propMap'])
+        self.enemyMap = Matrix(gridWidth, gridHeight)
+        self.enemyMap.replace(self.dict['enemyMap'])
 
         if len(self.tileMap) != len(self.propMap) != len(self.enemyMap):
             raise ValueError('Map sizes are not uniform (y dimension)')
@@ -53,22 +65,39 @@ class Room:
         self.width = len(self.tileMap)
         self.height = len(self.tileMap[0])
 
-        self.pathMap = Matrix(self.width, self.height, 1)
+        self.pathMap = Matrix(self.width, self.height)
         self.spawnPoint = self.dict['spawn']
         self.exitPoint = self.dict['exit']
+        self.exitRect = pg.Rect(self.exitPoint[0], self.exitPoint[1], tileGrid, tileGrid)
         self.exit_open = False
         self.collision = []
+        for y, row in enumerate(self.tileMap):
+            for x, col in enumerate(row):
+                if col is None:
+                    self.pathMap[y][x] = 0
+                else:
+                    try:
+                        self.pathMap[x][y] = tileData[col][1]
+                        self.collision.append(pg.Rect(x * tileGrid, y * tileGrid, tileGrid, tileGrid))
+                    except KeyError:
+                        pass
+        self.hazardRects = []
+        for y, row in enumerate(self.propMap):
+            for x, col in enumerate(row):
+                if col in hazardTiles:
+                    self.hazard_rects.append([pg.Rect((x * tileGrid) + 15, (y * tileGrid) + 15,
+                                                      tileGrid - 30, tileGrid - 30), col])
+                    self.pathMap[y][x] = 0
         self._instances.add(weakref.ref(self))
+
 
         for y, row in enumerate(self.tileMap):
             for x, col in enumerate(row):
                 try:
-                    self.pathMap[y][x] = tileData[col][1]
+                    self.pathMap[x][y] = tileData[col][1]
                     self.collision.append(pg.Rect(x * tileGrid, y * tileGrid, tileGrid, tileGrid))
                 except KeyError:
                     pass
-        if Room.current is None:
-            Room.current = self
 
     @classmethod
     def get_instances(cls):
@@ -80,6 +109,23 @@ class Room:
             else:
                 dead.add(ref)
         cls._instances -= dead
+
+    @staticmethod
+    def get_random():
+        instances = []
+        for i in Room.get_instances():
+            instances.append(i)
+        return random.choice(instances)
+
+    @classmethod
+    def add_instance(cls, file):
+        cls._instancelist.append(Room(file))
+
+    def draw(self):
+        for y, row in enumerate(self.tileMap):
+            for x, col in enumerate(row):
+                app.blit(tileData[col][0], [x * tileGrid, y * tileGrid])
+
 
 
 if __name__ == "__main__":
@@ -130,9 +176,9 @@ if __name__ == "__main__":
             self.exit = [-1, -1]
             self.selectedTile = None
             self.levelInfo = {
-                'tileMap': self.tileMap,
-                'propMap': self.propMap,
-                'enemyMap': self.enemyMap,
+                'tileMap': self.tileMap.grid,
+                'propMap': self.propMap.grid,
+                'enemyMap': self.enemyMap.grid,
                 'spawn': self.spawn,
                 'exit': self.exit
             }
@@ -141,25 +187,25 @@ if __name__ == "__main__":
             askIfClear = messagebox.askyesno('Clear', 'Clear all ' + add_type.get() + ' instances?')
             if askIfClear == 1:
                 if add_type.get() == 'tile' or add_type.get() == 'wall':
-                    self.tileMap = Matrix(gridWidth, gridHeight, None)
+                    self.tileMap.clear()
                 elif add_type.get() == 'prop':
-                    self.propMap = Matrix(gridWidth, gridHeight, None)
+                    self.propMap.clear()
                 elif add_type.get() == 'enemy':
-                    self.enemyMap = Matrix(gridWidth, gridHeight, None)
+                    self.enemyMap.clear()
                 elif add_type.get() == 'spawn':
                     self.spawn = [-1, -1]
                 elif add_type.get() == 'exit':
                     self.exit = [-1, -1]
 
-        def fill_room(self, obj):
-            for y, row in enumerate(self.tileMap):
-                for x, col in enumerate(row):
-                    if add_type.get() == 'tile' or 'wall':
-                        self.tileMap[y][x] = obj
-                    if add_type.get() == 'prop':
-                        self.propMap[y][x] = obj
-                    if add_type.get() == 'enemy':
-                        self.enemyMap[y][x] = obj
+        def fill_room(self):
+            if add_type.get() == 'tile':
+                self.tileMap.fill(selection.get())
+            if add_type.get() ==  'wall':
+                self.tileMap.fill('void')
+            if add_type.get() == 'prop':
+                self.propMap.fill(selection.get())
+            if add_type.get() == 'enemy':
+                self.enemyMap.fill(selection.get())
 
         def save_room(self):
             file_dir = 'levels/' + level_name_entry.get() + '.json'
@@ -176,12 +222,11 @@ if __name__ == "__main__":
             if root.filename != '':
                 loaded_level = mpu.io.read(root.filename)
                 self.levelInfo = dict(loaded_level)
-                self.tileMap = self.levelInfo["tileMap"]
-                self.propMap = self.levelInfo['propMap']
-                self.enemyMap = self.levelInfo['enemyMap']
+                self.tileMap.replace(self.levelInfo["tileMap"])
+                self.propMap.replace(self.levelInfo['propMap'])
+                self.enemyMap.replace(self.levelInfo['enemyMap'])
                 self.spawn = self.levelInfo['spawn']
                 self.exit = self.levelInfo['exit']
-                self.reinit()
 
         def smart_walls(self):
             adj = {
@@ -354,7 +399,13 @@ if __name__ == "__main__":
                 tile_x = math.floor(mouseLoc[0] / tileGrid)
                 tile_y = math.floor(mouseLoc[1] / tileGrid)
                 if add_type.get() == 'tile':
-                    self.tileMap.set(tile_x, tile_y, 'floor')
+                    self.tileMap.set(tile_x, tile_y, selection.get())
+                if add_type.get() == 'wall':
+                    self.tileMap.set(tile_x, tile_y, 'void')
+                if add_type.get() == 'prop':
+                    self.propMap.set(tile_x, tile_y, selection.get())
+                if add_type.get() == 'enemy':
+                    self.enemyMap.set(tile_x, tile_y, selection.get())
                 if add_type.get() == 'spawn':
                     self.spawn = [tile_x, tile_y]
                 if add_type.get() == 'exit':
@@ -390,9 +441,9 @@ if __name__ == "__main__":
                 app.blit(exit_icon, (self.exit[0] * tileGrid, self.exit[1] * tileGrid))
 
             self.levelInfo = {
-                'tileMap': self.tileMap,
-                'propMap': self.propMap,
-                'enemyMap': self.enemyMap,
+                'tileMap': self.tileMap.grid,
+                'propMap': self.propMap.grid,
+                'enemyMap': self.enemyMap.grid,
                 'spawn': self.spawn,
                 'exit': self.exit
             }
@@ -406,15 +457,19 @@ if __name__ == "__main__":
     def radio_update():
         if add_type.get() == 'tile':
             selector = OptionMenu(painting_frame, selection, *tile_list)
+            selection.set(tile_list[0])
             selector.grid(row=2, column=0, columnspan=2)
         elif add_type.get() == 'wall':
             selector = OptionMenu(painting_frame, selection, *['Wall'])
+            selection.set('Wall')
             selector.grid(row=2, column=0, columnspan=2)
         elif add_type.get() == 'prop':
             selector = OptionMenu(painting_frame, selection, *prop_list)
+            selection.set(prop_list[0])
             selector.grid(row=2, column=0, columnspan=2)
         elif add_type.get() == 'enemy':
             selector = OptionMenu(painting_frame, selection, *enemy_list)
+            selection.set(enemy_list[0])
             selector.grid(row=2, column=0, columnspan=2)
         elif add_type.get() == 'spawn':
             selector = OptionMenu(painting_frame, selection, *['Spawn Point'])
@@ -434,7 +489,7 @@ if __name__ == "__main__":
     selection.set(tile_list[0])  # default value
 
     selector = OptionMenu(painting_frame, selection, *tile_list)
-    fill_button = Button(painting_frame, text="Fill", command=lambda: level_editor.fill_room(selection.get()))
+    fill_button = Button(painting_frame, text="Fill", command=lambda: level_editor.fill_room())
     clear_button = Button(painting_frame, text="Clear", command=level_editor.clear_room)
     add_type = StringVar()
     add_type.set('tile')

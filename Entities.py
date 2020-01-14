@@ -30,7 +30,7 @@ class Entity:
         return collisions
 
     def tick(self):
-        pass
+        self.draw()
 
     def kill(self):
         del self
@@ -73,9 +73,10 @@ class Projectile(Entity):
         self.draw()
         if len(self.check_collision()) > 0:
             self.kill()
+        self.draw()
 
-    @staticmethod
-    def add(p):
+    @classmethod
+    def add(cls, p):
         Projectile._instances += p
 
 
@@ -142,6 +143,7 @@ class Player(Entity):
             self.lastAttack = time.time()
             vec = vector(self.attackSource, destination)
             Projectile.add(Projectile(self.attackSource, vec, fireSpell, 25))
+        self.draw()
 
     @classmethod
     def get_instances(cls):
@@ -208,6 +210,13 @@ class Enemy(Entity):
                 self.lastAttack = time.time()
         self.draw()
 
-    @staticmethod
-    def spawn(pos):
+    @classmethod
+    def spawn(cls, pos):
         Enemy._instances += Enemy(pos)
+
+    def matrix_spawn(self, matrix):
+        for y, row in enumerate(matrix):
+            for x, col in enumerate(row):
+                if col in enemyData:
+                    Enemy.spawn([x * tileGrid, y * tileGrid])
+
