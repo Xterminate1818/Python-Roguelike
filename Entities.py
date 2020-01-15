@@ -9,12 +9,20 @@ class Entity:
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = pos
+        self.dx = 0
+        self.dy = 0
+        self.speed = 5
         self._instances.add(weakref.ref(self))
 
     def draw(self):
         app.blit(self.image, self.rect)
 
-    def move(self, dx, dy):
+    def move(self):
+        dx = self.dx
+        dy = self.dy
+        if abs(dx) + abs(dy) > self.speed:
+            dx *= .707
+            dy *= .707
         self.rect.centerx += dx
         self.rect.centery += dy
 
@@ -37,8 +45,8 @@ class Entity:
 
     @staticmethod
     def tick_all():
-        for e in Entity.get_instances():
-            e.tick()
+        for i in Entity.get_instances():
+            i.tick()
 
     @staticmethod
     def kill_all():
@@ -82,14 +90,13 @@ class Projectile(Entity):
 
 class Player(Entity):
     _instances = set()
-    collision = []
 
     def __init__(self, pos):
         self.image = pg.image.load("textures/sprites/Player/wizard.bmp").convert_alpha()
         super().__init__(pos, self.image)
         self.initTime = time.time()
 
-        self.speed = 10
+        self.speed = 3.5
         self.maxHealth = 5
         self.health = self.maxHealth
 
@@ -112,16 +119,30 @@ class Player(Entity):
         self.lastSpecial = self.initTime
         self.specialAvailable = True
         self._instances.add(weakref.ref(self))
+        Entity._instances.add(weakref.ref(self))
 
-    def move(self, dx, dy):
-        self.rect.centerx += int(dx)
+    def move(self):
+        if self.dx > 1:
+            self.dx = 1
+        if self.dx < -1:
+            self.dx = -1
+        if self.dy > 1:
+            self.dy = 1
+        if self.dy < -1:
+            self.dy = -1
+        dx = self.dx
+        dy = self.dy
+        if abs(dx) + abs(dy) > 1:
+            dx *= .707
+            dy *= .707
+        self.rect.centerx += dx * self.speed
         collisions = self.check_collision()
         for c in collisions:
             if dx > 0:
                 self.rect.right = c.left
             if dx < 0:
                 self.rect.left = c.right
-        self.rect.centery += int(dy)
+        self.rect.centery += dy * self.speed
         collisions = self.check_collision()
         for c in collisions:
             if dy > 0:
@@ -135,8 +156,9 @@ class Player(Entity):
         self.abilityAvailable = True if time.time() - self.lastAbility > self.abilityCD else False
         self.specialAvailable = True if time.time() - self.lastSpecial > self.specialCD else False
         self.attackSource = [self.rect.x + self.attackOffset[0], self.rect.y + self.attackOffset[1]]
-        self.draw()
         Enemy.target = self.rect
+        self.draw()
+        self.move()
 
     def attack(self, destination):
         if self.attackAvailable:
@@ -159,6 +181,7 @@ class Player(Entity):
 
 class Enemy(Entity):
     _instances = set()
+    clsList = []
     pathMap = []
     target = None
 
@@ -212,9 +235,10 @@ class Enemy(Entity):
 
     @classmethod
     def spawn(cls, pos):
-        Enemy._instances += Enemy(pos)
+        Enemy.clsList.append(Enemy(pos))
 
-    def matrix_spawn(self, matrix):
+    @staticmethod
+    def matrix_spawn(matrix):
         for y, row in enumerate(matrix):
             for x, col in enumerate(row):
                 if col in enemyData:

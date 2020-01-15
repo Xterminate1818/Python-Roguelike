@@ -29,7 +29,7 @@ red = (255, 0, 0)
 green = (0, 255, 0)
 blue = (0, 0, 255)
 
-fps = 60
+fps = 120
 dis_width = 1024
 dis_height = 640
 app = pg.display.set_mode((dis_width, dis_height))

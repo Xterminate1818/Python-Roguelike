@@ -17,8 +17,9 @@ if __name__ == "__main__":
     Entity.kill_all()
     # Init player
     p = Player(currentRoom.spawnPoint)
+    Entity.collision = currentRoom.collision
     # Enemies
-
+    Enemy.matrix_spawn(currentRoom.enemyMap)
     # Mouse variables
     mousePressed = False
     mouseReleased = False
@@ -38,24 +39,22 @@ if __name__ == "__main__":
                 sys.exit()
             if e.type == KEYDOWN:
                 if e.key == K_w:
-                    p.up = True
+                    p.dy += -1
                 if e.key == K_s:
-                    p.down = True
+                    p.dy += 1
                 if e.key == K_a:
-                    p.left = True
+                    p.dx += -1
                 if e.key == K_d:
-                    p.right = True
-
+                    p.dx += 1
             if e.type == KEYUP:
                 if e.key == K_w:
-                    p.up = False
+                    p.dy -= -1
                 if e.key == K_s:
-                    p.down = False
+                    p.dy -= 1
                 if e.key == K_a:
-                    p.left = False
+                    p.dx -= -1
                 if e.key == K_d:
-                    p.right = False
-
+                    p.dx -= 1
             mousePressed = False
             mouseReleased = False
             mouseHeld = False
@@ -67,9 +66,10 @@ if __name__ == "__main__":
                 mouseReleased = True
             mouseLast = pg.mouse.get_pressed()
 
-        if p.rect.colliderect(currentRoom.exitRect) and currentRoom.exit_open:
-            currentRoom = room.get_random()
+        if p.rect.colliderect(currentRoom.exitRect) and currentRoom.exitOpen:
+            currentRoom = Room.get_random()
             p.rect.x, p.rect.y = currentRoom.spawnPoint
+
         currentRoom.draw()
         Entity.tick_all()
         pg.display.update()

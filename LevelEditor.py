@@ -1,4 +1,6 @@
 from init import *
+
+
 class Matrix:
 
     def __init__(self, xsize, ysize):
@@ -46,8 +48,8 @@ class Room:
     _instances = set()
     _instancelist = []
 
-    def __init__(self, file):
-        self.file = mpu.io.read(file)
+    def __init__(self, _file):
+        self.file = mpu.io.read(_file)
         self.dict = dict(self.file)
 
         self.tileMap = Matrix(gridWidth, gridHeight)
@@ -56,6 +58,7 @@ class Room:
         self.propMap.replace(self.dict['propMap'])
         self.enemyMap = Matrix(gridWidth, gridHeight)
         self.enemyMap.replace(self.dict['enemyMap'])
+        self.pathMap = Matrix(gridWidth, gridHeight)
 
         if len(self.tileMap) != len(self.propMap) != len(self.enemyMap):
             raise ValueError('Map sizes are not uniform (y dimension)')
@@ -65,39 +68,21 @@ class Room:
         self.width = len(self.tileMap)
         self.height = len(self.tileMap[0])
 
-        self.pathMap = Matrix(self.width, self.height)
         self.spawnPoint = self.dict['spawn']
+        self.spawnPoint[0] *= tileGrid
+        self.spawnPoint[1] *= tileGrid
         self.exitPoint = self.dict['exit']
+        self.exitPoint[0] *= tileGrid
+        self.exitPoint[1] *= tileGrid
         self.exitRect = pg.Rect(self.exitPoint[0], self.exitPoint[1], tileGrid, tileGrid)
-        self.exit_open = False
+        self.exitOpen = False
         self.collision = []
-        for y, row in enumerate(self.tileMap):
+        for y, row in enumerate(self.tileMap.grid):
             for x, col in enumerate(row):
-                if col is None:
-                    self.pathMap[y][x] = 0
-                else:
-                    try:
-                        self.pathMap[x][y] = tileData[col][1]
-                        self.collision.append(pg.Rect(x * tileGrid, y * tileGrid, tileGrid, tileGrid))
-                    except KeyError:
-                        pass
-        self.hazardRects = []
-        for y, row in enumerate(self.propMap):
-            for x, col in enumerate(row):
-                if col in hazardTiles:
-                    self.hazard_rects.append([pg.Rect((x * tileGrid) + 15, (y * tileGrid) + 15,
-                                                      tileGrid - 30, tileGrid - 30), col])
-                    self.pathMap[y][x] = 0
-        self._instances.add(weakref.ref(self))
-
-
-        for y, row in enumerate(self.tileMap):
-            for x, col in enumerate(row):
-                try:
-                    self.pathMap[x][y] = tileData[col][1]
+                if tileData[col][1] < 1:
                     self.collision.append(pg.Rect(x * tileGrid, y * tileGrid, tileGrid, tileGrid))
-                except KeyError:
-                    pass
+        print(self.collision)
+        self._instances.add(weakref.ref(self))
 
     @classmethod
     def get_instances(cls):
@@ -125,7 +110,6 @@ class Room:
         for y, row in enumerate(self.tileMap):
             for x, col in enumerate(row):
                 app.blit(tileData[col][0], [x * tileGrid, y * tileGrid])
-
 
 
 if __name__ == "__main__":
