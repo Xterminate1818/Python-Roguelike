@@ -22,7 +22,6 @@ def vector(pos1, pos2):
     dy = math.sin(radians)
     return dx, dy
 
-
 black = (0, 0, 0)
 white = (255, 255, 255)
 red = (255, 0, 0)

@@ -29,10 +29,6 @@ class Matrix:
 
     def set(self, x, y, content):
         self.grid[y][x] = content
-        print('set')
-
-    def reset(self):
-        self.grid = self.gridOriginal
 
     def __getitem__(self, y):
         return self.grid[y]
@@ -43,10 +39,13 @@ class Matrix:
     def replace(self, matrix):
         self.grid = matrix
 
+    def get(self):
+        return self.grid
+
 
 class Room:
     _instances = set()
-    _instancelist = []
+    clsList = []
 
     def __init__(self, _file):
         self.file = mpu.io.read(_file)
@@ -59,6 +58,7 @@ class Room:
         self.enemyMap = Matrix(gridWidth, gridHeight)
         self.enemyMap.replace(self.dict['enemyMap'])
         self.pathMap = Matrix(gridWidth, gridHeight)
+        self.pathMap.fill(1)
 
         if len(self.tileMap) != len(self.propMap) != len(self.enemyMap):
             raise ValueError('Map sizes are not uniform (y dimension)')
@@ -71,17 +71,19 @@ class Room:
         self.spawnPoint = self.dict['spawn']
         self.spawnPoint[0] *= tileGrid
         self.spawnPoint[1] *= tileGrid
+
         self.exitPoint = self.dict['exit']
         self.exitPoint[0] *= tileGrid
         self.exitPoint[1] *= tileGrid
         self.exitRect = pg.Rect(self.exitPoint[0], self.exitPoint[1], tileGrid, tileGrid)
         self.exitOpen = False
+
         self.collision = []
         for y, row in enumerate(self.tileMap.grid):
             for x, col in enumerate(row):
                 if tileData[col][1] < 1:
                     self.collision.append(pg.Rect(x * tileGrid, y * tileGrid, tileGrid, tileGrid))
-        print(self.collision)
+                    self.pathMap.set(x, y, 0)
         self._instances.add(weakref.ref(self))
 
     @classmethod
@@ -104,12 +106,14 @@ class Room:
 
     @classmethod
     def add_instance(cls, file):
-        cls._instancelist.append(Room(file))
+        cls.clsList.append(Room(file))
 
     def draw(self):
         for y, row in enumerate(self.tileMap):
             for x, col in enumerate(row):
                 app.blit(tileData[col][0], [x * tileGrid, y * tileGrid])
+        if self.exitOpen:
+            app.blit(ladder, self.exitRect)
 
 
 if __name__ == "__main__":
