@@ -8,7 +8,7 @@ if __name__ == "__main__":
     for r in roomDirectoryList:
         Room.add_instance(r)
     currentRoom = Room.get_random()
-    Entity.collision = currentRoom.collision
+    MovementComponent.collision = currentRoom.collision
     Enemy.pathMap = currentRoom.pathMap.get()
     # Init clock
     clock = pg.time.Clock()
@@ -56,7 +56,7 @@ if __name__ == "__main__":
         if p.rect.colliderect(currentRoom.exitRect) and currentRoom.exitOpen:
             currentRoom = Room.get_random()
             p.rect.x, p.rect.y = currentRoom.spawnPoint
-            Entity.collision = currentRoom.collision
+            MovementComponent.collision = currentRoom.collision
 
         currentRoom.draw()
         Entity.tick_all(currentRoom)

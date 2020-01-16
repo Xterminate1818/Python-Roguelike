@@ -1,9 +1,9 @@
 from init import *
+from Components import *
 
 
 class Entity:
     _instances = set()
-    collision = []
 
     def __init__(self, pos, image):
         self.image = image
@@ -11,6 +11,7 @@ class Entity:
         self.rect.x, self.rect.y = pos
         self.width = self.rect.width
         self.height = self.rect.height
+
         self.dx = 0
         self.dy = 0
         self.speed = 5
@@ -19,41 +20,20 @@ class Entity:
     def draw(self):
         app.blit(self.image, self.rect)
 
-    def move(self):
-        dx = self.dx
-        dy = self.dy
-        if abs(dx) + abs(dy) > self.speed:
-            dx *= .707
-            dy *= .707
-        self.rect.centerx += dx
-        self.rect.centery += dy
-
-    def teleport(self, x, y):
-        self.rect.x = x
-        self.rect.y = y
-
-    def check_collision(self):
-        collisions = []
-        for c in Entity.collision:
-            if self.rect.colliderect(c):
-                collisions.append(c)
-        return collisions
-
     def tick(self, room):
-        Entity.collision = room.collision
         self.draw()
 
     def kill(self):
         del self
 
-    @staticmethod
-    def tick_all(room):
-        for i in Entity.get_instances():
+    @classmethod
+    def tick_all(cls, room):
+        for i in cls.get_instances():
             i.tick(room)
 
-    @staticmethod
-    def kill_all():
-        for e in Entity.get_instances():
+    @classmethod
+    def kill_all(cls):
+        for e in cls.get_instances():
             e.kill()
 
     @classmethod
@@ -77,18 +57,17 @@ class Projectile(Entity):
         super().__init__(pos, self.image)
         self.vector = vec
         self.speed = speed
+        self.movement = ProjectileMovement(self.rect, self.vector, self.speed)
         self._instances.add(weakref.ref(self))
         Entity._instances.add(weakref.ref(self))
 
     def tick(self, room):
-        self.rect.centerx += self.vector[0] * self.speed
-        self.rect.centery += self.vector[1] * self.speed
-        self.draw()
-        if len(self.check_collision()) > 0:
+        self.rect = self.movement.move()
+        if self.rect == 'hit':
             Projectile.clsList.remove(self)
             self.kill()
-
-        self.draw()
+        else:
+            self.draw()
 
     @classmethod
     def add(cls, p):
@@ -103,17 +82,10 @@ class Player(Entity):
         super().__init__(pos, self.image)
         self.initTime = time.time()
 
-        self.hitBox = pg.Rect(self.rect[0] + 10, self.rect[1] + 10, self.rect[2] - 10, self.rect[3] - 10)
-        self.speed = 3.5
-        self.maxHealth = 5
-        self.health = self.maxHealth
+        self.health = HealthComponent(5, self.rect)
 
         self.attackOffset = [30, 6]
         self.attackSource = [self.rect.x + self.attackOffset[0], self.rect.y + self.attackOffset[1]]
-
-        self.damageCD = 1.5
-        self.lastDamage = self.initTime
-        self.damageAvailable = True
 
         self.attackCD = 0.5
         self.lastAttack = self.initTime
@@ -128,35 +100,6 @@ class Player(Entity):
         self.specialAvailable = True
         self._instances.add(weakref.ref(self))
         Entity._instances.add(weakref.ref(self))
-
-    def move(self):
-        if self.dx > 1:
-            self.dx = 1
-        if self.dx < -1:
-            self.dx = -1
-        if self.dy > 1:
-            self.dy = 1
-        if self.dy < -1:
-            self.dy = -1
-        dx = self.dx
-        dy = self.dy
-        if abs(dx) + abs(dy) > 1:
-            dx *= .707
-            dy *= .707
-        self.rect.centerx += dx * self.speed
-        collisions = self.check_collision()
-        for c in collisions:
-            if dx > 0:
-                self.rect.right = c.left
-            if dx < 0:
-                self.rect.left = c.right
-        self.rect.centery += dy * self.speed
-        collisions = self.check_collision()
-        for c in collisions:
-            if dy > 0:
-                self.rect.bottom = c.top
-            if dy < 0:
-                self.rect.top = c.bottom
 
     def tick(self, room):
         self.damageAvailable = True if time.time() - self.lastDamage > self.damageCD else False
