@@ -58,6 +58,7 @@ if __name__ == "__main__":
             p.rect.x, p.rect.y = currentRoom.spawnPoint
             MovementComponent.collision = currentRoom.collision
 
+        MovementComponent.move_all()
         currentRoom.draw()
         Entity.tick_all(currentRoom)
         pg.display.update()

@@ -57,17 +57,21 @@ class Projectile(Entity):
         super().__init__(pos, self.image)
         self.vector = vec
         self.speed = speed
+        self.health = HealthComponent(1, self.rect, 999)
         self.movement = ProjectileMovement(self.rect, self.vector, self.speed)
         self._instances.add(weakref.ref(self))
         Entity._instances.add(weakref.ref(self))
 
     def tick(self, room):
         self.rect = self.movement.move()
+        self.health.hitbox = self.rect
+        self.health.damage_rect(self.rect, 999)
         if self.rect == 'hit':
             Projectile.clsList.remove(self)
             self.kill()
         else:
             self.draw()
+
 
     @classmethod
     def add(cls, p):
@@ -82,7 +86,9 @@ class Player(Entity):
         super().__init__(pos, self.image)
         self.initTime = time.time()
 
-        self.health = HealthComponent(5, self.rect)
+        # Health, hitbox, damage CD
+        self.health = HealthComponent(5, self.rect, 1)
+        self.movement = PhysicsMovement(self.rect, self.speed)
 
         self.attackOffset = [30, 6]
         self.attackSource = [self.rect.x + self.attackOffset[0], self.rect.y + self.attackOffset[1]]
@@ -102,21 +108,24 @@ class Player(Entity):
         Entity._instances.add(weakref.ref(self))
 
     def tick(self, room):
-        self.damageAvailable = True if time.time() - self.lastDamage > self.damageCD else False
         self.attackAvailable = True if time.time() - self.lastAttack > self.attackCD else False
         self.abilityAvailable = True if time.time() - self.lastAbility > self.abilityCD else False
         self.specialAvailable = True if time.time() - self.lastSpecial > self.specialCD else False
         self.attackSource = [self.rect.x + self.attackOffset[0], self.rect.y + self.attackOffset[1]]
         Enemy.target = self.rect
+        self.movement.dx = self.dx
+        self.movement.dy = self.dy
+        self.health.hitbox = self.rect
+        self.movement.rect = self.rect
         self.draw()
-        self.move()
+        if self.health.health <= 0:
+            self.kill()
 
     def attack(self, destination):
         if self.attackAvailable:
             self.lastAttack = time.time()
             vec = vector(self.attackSource, destination)
             Projectile.add(Projectile(self.attackSource, vec, fireSpell, 10))
-            self.hitBox = pg.Rect(self.rect[0] + 10, self.rect[1] + 10, self.rect[2] - 10, self.rect[3] - 10)
 
     @classmethod
     def get_instances(cls):
@@ -142,15 +151,15 @@ class Enemy(Entity):
 
         self.destination = [-1, -1]
         self.ignore = [-1, -1]
-        self.speed = 2
+        self.speed = 4
+        self.movement = PhysicsMovement(self.rect, self.speed)
+        self.health = HealthComponent(3, self.rect, 0)
 
         self.attackCD = 1
         self.lastAttack = time.time()
         self.canAttack = True
 
         self.range = 10
-        self.maxHealth = 3
-        self.health = self.maxHealth
         self._instances.add(weakref.ref(self))
         Entity._instances.add(weakref.ref(self))
 
@@ -177,36 +186,10 @@ class Enemy(Entity):
         self.dx, self.dy = vector((self.rect.x, self.rect.y), self.destination)
         self.dx *= self.speed
         self.dy *= self.speed
-        self.move()
-
-    def move(self):
-        if self.dx > self.speed:
-            self.dx = self.speed
-        if self.dx < -self.speed:
-            self.dx = -self.speed
-        if self.dy > self.speed:
-            self.dy = self.speed
-        if self.dy < -self.speed:
-            self.dy = -self.speed
-        dx = self.dx
-        dy = self.dy
-        if abs(dx) + abs(dy) > self.speed:
-            dx *= .707
-            dy *= .707
-        self.rect.centerx += dx
-        collisions = self.check_collision()
-        for c in collisions:
-            if dx > 0:
-                self.rect.right = c.left
-            if dx < 0:
-                self.rect.left = c.right
-        self.rect.centery += dy
-        collisions = self.check_collision()
-        for c in collisions:
-            if dy > 0:
-                self.rect.bottom = c.top
-            if dy < 0:
-                self.rect.top = c.bottom
+        self.movement.dx = self.dx
+        self.movement.dy = self.dy
+        self.movement.rect = self.rect
+        self.health.hitbox = self.rect
 
     def kill(self):
         Enemy.clsList.remove(self)
