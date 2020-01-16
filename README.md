@@ -1,1 +1,1 @@
-Python Roguelike
+BAT file will compile script using pyinstaller into an exe. To run the exe, move it to the main directory.
