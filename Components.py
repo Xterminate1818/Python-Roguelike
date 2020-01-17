@@ -1,6 +1,9 @@
 import weakref
 import pygame as pg
 import time
+import math
+from pathfinding.core.grid import Grid
+from pathfinding.finder.a_star import AStarFinder
 
 
 class MovementComponent:
@@ -89,6 +92,7 @@ class ProjectileMovement(MovementComponent):
         self.vec = list(vector)
         self.vec[0] *= speed
         self.vec[1] *= speed
+        self.alive = True
         super().__init__(rect)
         self._instances.add(weakref.ref(self))
         MovementComponent._instances.add(weakref.ref(self))
@@ -97,14 +101,41 @@ class ProjectileMovement(MovementComponent):
         self.rect.x += self.vec[0]
         self.rect.y += self.vec[1]
         if len(self.check_collision()) > 0:
-            return 'hit'
+            self.alive = False
         else:
             return self.rect
 
 
-#############################################
-class HealthComponent:
-    _instances = set()
+##############################################
+class Attribute:
+    healthComp = set()
+    damageComp = set()
+    animationComp = set()
+
+    @classmethod
+    def health(cls):
+        dead = set()
+        for ref in cls.healthComp:
+            obj = ref()
+            if obj is not None:
+                yield obj
+            else:
+                dead.add(ref)
+        cls.healthComp -= dead
+
+    @classmethod
+    def damage(cls):
+        dead = set()
+        for ref in cls.damageComp:
+            obj = ref()
+            if obj is not None:
+                yield obj
+            else:
+                dead.add(ref)
+        cls.damageComp -= dead
+
+
+class Health(Attribute):
 
     def __init__(self, health, hitbox, damageCD):
         self.maxHealth = health
@@ -112,27 +143,7 @@ class HealthComponent:
         self.hitbox = hitbox
         self.damageCD = damageCD
         self.lastDamage = time.time()
-        self._instances.add(weakref.ref(self))
-
-    @classmethod
-    def get_instances(cls):
-        dead = set()
-        for ref in cls._instances:
-            obj = ref()
-            if obj is not None:
-                yield obj
-            else:
-                dead.add(ref)
-        cls._instances -= dead
-
-    def damage_rect(self, rect, amount):
-        for i in HealthComponent.get_instances():
-            if i != self and rect.colliderect(i.hitbox) and time.time() - i.lastDamage > i.damageCD:
-                i.health -= amount
-                i.lastDamage = time.time()
-
-    def suicide(self):
-        self.health = 0
+        Attribute.healthComp.add(weakref.ref(self))
 
     def heal_self(self, amount):
         self.heal(self, amount)
@@ -143,13 +154,70 @@ class HealthComponent:
         if target.health > target.maxHealth:
             target.health = target.maxHealth
 
-    @staticmethod
-    def kill(target):
-        target.health = 0
+
+class Damage(Attribute):
+    def __init__(self, damage, damageCD, ignore):
+        self.damageCD = damageCD
+        self.damage = damage
+        self.ignore = list(ignore)
+        self.lastDamage = time.time()
+        Attribute.damageComp.add(weakref.ref(self))
+
+    def rect(self, rect):
+        if time.time() - self.lastDamage >= self.damageCD:
+            self.lastDamage = time.time()
+            for i in Attribute.health():
+                if rect.colliderect(i.hitbox) and i not in self.ignore:
+                    i.health -= self.damage
+
+    def target(self, target):
+        target.health -= self.damage
 
 
-class DamageComponent:
+class Animation(Attribute):
+    def __init__(self, animation, framerate):
+        self.list = animation
+        self.fr = 1 / framerate
+        self.lastFrame = time.time()
+        self.currentFrame = 0
+        self.length = len(self.list) - 1
 
+    def next(self):
+        if time.time() - self.lastFrame >= self.fr:
+            ret = self.list[self.currentFrame]
+            self.currentFrame += 1
+            if self.currentFrame > self.length:
+                self.currentFrame = 0
+            self.lastFrame = time.time()
+            return ret
+        else:
+            return self.list[self.currentFrame]
+
+
+class PathFinding(Attribute):
+    def __init__(self, pathmap, loc, target):
+        self.destination = None
+        self.pathMap = pathmap
+        self.path = [self.destination]
+        self.target = target
+        self.loc = loc
+        self.ignore = None
+
+    def pathfind(self):
+        grid = Grid(matrix=self.pathMap)
+        start = grid.node(self.loc[0], self.loc[1])
+        end = grid.node(math.floor(self.target[0]), math.floor(self.target[1]))
+        finder = AStarFinder()
+        path, runs = finder.find_path(start, end, grid)
+        self.path = path
+        if len(self.path) > 1:
+            self.destination = self.path[1]
+        else:
+            self.destination = path[0]
+
+    def next_location(self):
+        self.pathfind()
+        return list(self.destination)
 
 
 #############################################

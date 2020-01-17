@@ -47,31 +47,38 @@ class Entity:
                 dead.add(ref)
         cls._instances -= dead
 
+    @classmethod
+    def test_collide(cls, rect):
+        col = False
+        for i in cls.get_instances():
+            if rect.colliderect(i.rect):
+                col = True
+        return col
+
 
 class Projectile(Entity):
     _instances = set()
     clsList = []
 
-    def __init__(self, pos, vec, image, speed):
+    def __init__(self, pos, vec, image, speed, ignore):
         self.image = image
         super().__init__(pos, self.image)
         self.vector = vec
         self.speed = speed
-        self.health = HealthComponent(1, self.rect, 999)
+        self.damage = Damage(1, 0, ignore)
         self.movement = ProjectileMovement(self.rect, self.vector, self.speed)
         self._instances.add(weakref.ref(self))
         Entity._instances.add(weakref.ref(self))
 
     def tick(self, room):
         self.rect = self.movement.move()
-        self.health.hitbox = self.rect
-        self.health.damage_rect(self.rect, 999)
-        if self.rect == 'hit':
+        if self.rect is not None:
+            self.damage.rect(self.rect)
+        if not self.movement.alive or Enemy.test_collide(self.rect):
             Projectile.clsList.remove(self)
             self.kill()
         else:
             self.draw()
-
 
     @classmethod
     def add(cls, p):
@@ -82,13 +89,19 @@ class Player(Entity):
     _instances = set()
 
     def __init__(self, pos):
-        self.image = pg.image.load("textures/sprites/Player/wizard.bmp").convert_alpha()
-        super().__init__(pos, self.image)
+        self.lookingRight = pg.image.load("textures/sprites/Player/wizard.bmp").convert_alpha()
+        self.lookingLeft = pg.transform.flip(self.lookingRight, True, False)
+        super().__init__(pos, self.lookingRight)
         self.initTime = time.time()
 
-        # Health, hitbox, damage CD
-        self.health = HealthComponent(5, self.rect, 1)
+        self.health = Health(5, self.rect, 1)
         self.movement = PhysicsMovement(self.rect, self.speed)
+        self.idleRight = Animation(playerIdleRight, 8)
+        self.idleLeft = Animation(playerIdleLeft, 8)
+        self.movingRight = Animation(playerRunningRight, 8)
+        self.movingLeft = Animation(playerRunningLeft, 8)
+
+        self.facing = 'right'
 
         self.attackOffset = [30, 6]
         self.attackSource = [self.rect.x + self.attackOffset[0], self.rect.y + self.attackOffset[1]]
@@ -113,11 +126,29 @@ class Player(Entity):
         self.specialAvailable = True if time.time() - self.lastSpecial > self.specialCD else False
         self.attackSource = [self.rect.x + self.attackOffset[0], self.rect.y + self.attackOffset[1]]
         Enemy.target = self.rect
+
+        if self.dx > 0:
+            self.facing = 'right'
+        elif self.dx < 0:
+            self.facing = 'left'
+
+        if self.dx == 0 and self.dy == 0:
+            if self.facing == 'right':
+                frame = self.idleRight.next()
+            else:
+                frame = self.idleLeft.next()
+        else:
+            print('run')
+            if self.facing == 'right':
+                frame = self.movingRight.next()
+            else:
+                frame = self.movingLeft.next()
         self.movement.dx = self.dx
         self.movement.dy = self.dy
         self.health.hitbox = self.rect
         self.movement.rect = self.rect
-        self.draw()
+        if frame is not None:
+            app.blit(frame, self.rect)
         if self.health.health <= 0:
             self.kill()
 
@@ -125,7 +156,7 @@ class Player(Entity):
         if self.attackAvailable:
             self.lastAttack = time.time()
             vec = vector(self.attackSource, destination)
-            Projectile.add(Projectile(self.attackSource, vec, fireSpell, 10))
+            Projectile.add(Projectile(self.attackSource, vec, fireSpell, 10, [self.health]))
 
     @classmethod
     def get_instances(cls):
@@ -143,17 +174,22 @@ class Enemy(Entity):
     _instances = set()
     clsList = []
     pathMap = []
-    target = None
+    target = pg.Rect(0, 0, 0, 0)
 
     def __init__(self, pos):
         self.image = evilEye
         super().__init__(pos, self.image)
 
-        self.destination = [-1, -1]
-        self.ignore = [-1, -1]
+        self.gridX = math.floor(pos[0]/tileGrid)
+        self.gridY = math.floor(pos[1]/tileGrid)
+        self.targetX = math.floor(Enemy.target.centerx / tileGrid)
+        self.targetY = math.floor(Enemy.target.centery / tileGrid)
+        self.path = PathFinding(Enemy.pathMap, (self.gridX, self.gridY), (self.targetX, self.targetY))
         self.speed = 4
+
         self.movement = PhysicsMovement(self.rect, self.speed)
-        self.health = HealthComponent(3, self.rect, 0)
+        self.health = Health(3, self.rect, 0)
+        self.damage = Damage(1, .7, [self.health])
 
         self.attackCD = 1
         self.lastAttack = time.time()
@@ -163,33 +199,28 @@ class Enemy(Entity):
         self._instances.add(weakref.ref(self))
         Entity._instances.add(weakref.ref(self))
 
-    def pathfind(self):
-        grid_x = math.floor(self.rect.x / tileGrid)
-        grid_y = math.floor(self.rect.y / tileGrid)
-        grid = Grid(matrix=Enemy.pathMap)
-        start = grid.node(grid_x, grid_y)
-        end = grid.node(math.floor(Enemy.target.centerx / tileGrid), math.floor(Enemy.target.centery / tileGrid))
-        finder = AStarFinder()
-        path, runs = finder.find_path(start, end, grid)
-        if grid_x == path[0][0] and grid_y == path[0][1] and len(path) > 1:
-            path.remove(path[0])
-        dest = path[0]
-        x = dest[0] * tileGrid
-        y = dest[1] * tileGrid
-        self.destination = [x, y]
-
     def tick(self, room):
-        self.pathMap = room.pathMap.get()
         self.canAttack = True if time.time() - self.lastAttack > self.attackCD else False
-        self.draw()
-        self.pathfind()
-        self.dx, self.dy = vector((self.rect.x, self.rect.y), self.destination)
-        self.dx *= self.speed
-        self.dy *= self.speed
+
+        self.gridX = math.floor(self.rect.x / tileGrid)
+        self.gridY = math.floor(self.rect.y / tileGrid)
+        self.path.loc = [self.gridX, self.gridY]
+        self.targetX = math.floor(Enemy.target.x / tileGrid)
+        self.targetY = math.floor(Enemy.target.y / tileGrid)
+        self.path.target = [self.targetX, self.targetY]
+        destination = self.path.next_location()
+        destination[0] *= tileGrid
+        destination[1] *= tileGrid
+
+        self.dx, self.dy = vector((self.rect.x, self.rect.y), destination)
         self.movement.dx = self.dx
         self.movement.dy = self.dy
         self.movement.rect = self.rect
         self.health.hitbox = self.rect
+        self.damage.rect(self.rect)
+        self.draw()
+        if self.health.health <= 0:
+            self.kill()
 
     def kill(self):
         Enemy.clsList.remove(self)

@@ -29,7 +29,7 @@ red = (255, 0, 0)
 green = (0, 255, 0)
 blue = (0, 0, 255)
 
-fps = 120
+fps = 60
 dis_width = 1024
 dis_height = 640
 app = pg.display.set_mode((dis_width, dis_height))
@@ -39,7 +39,7 @@ tileGrid = 64
 gridWidth = int(dis_width / tileGrid)
 gridHeight = int(dis_height / tileGrid)
 
-fontName = "freesansbold.ttf"
+fontName = "m3x6.ttf"
 roomsDirectory = 'levels'
 
 roomDirectoryList = []
@@ -120,6 +120,19 @@ isPaused = False
 # Sprite imports
 fireSpell = pg.image.load("textures/projectiles/flare.bmp").convert_alpha()
 evilEye = pg.image.load("textures/sprites/Enemies/eye.bmp").convert_alpha()
+
+# Animations
+
+# Player
+playerIdleRight = [pg.image.load("textures/sprites/player/idle/f0.bmp"), pg.image.load("textures/sprites/player/idle/f1.bmp"), pg.image.load("textures/sprites/player/idle/f2.bmp"), pg.image.load("textures/sprites/player/idle/f3.bmp")]
+playerIdleLeft = []
+for index, item in enumerate(playerIdleRight):
+    playerIdleLeft.insert(index, pg.transform.flip(item, True, False))
+
+playerRunningRight = [pg.image.load("textures/sprites/player/run/f0.bmp"), pg.image.load("textures/sprites/player/run/f1.bmp"), pg.image.load("textures/sprites/player/run/f2.bmp"), pg.image.load("textures/sprites/player/run/f3.bmp")]
+playerRunningLeft = []
+for index, item in enumerate(playerIdleRight):
+    playerRunningLeft.insert(index, pg.transform.flip(item, True, False))
 
 # UI imports
 heartFull = pg.image.load("textures/ui/full heart.bmp")
