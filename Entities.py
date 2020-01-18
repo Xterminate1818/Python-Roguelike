@@ -138,7 +138,6 @@ class Player(Entity):
             else:
                 frame = self.idleLeft.next()
         else:
-            print('run')
             if self.facing == 'right':
                 frame = self.movingRight.next()
             else:

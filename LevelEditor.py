@@ -117,9 +117,6 @@ class Room:
 
 
 if __name__ == "__main__":
-    from init import *
-    from pygame.locals import *
-
     test = Matrix(2, 2)
     test.print()
     test.set(0, 0, False)

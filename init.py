@@ -11,9 +11,11 @@ import pygame as pg
 from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder
 from pygame.locals import *
+os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 random.seed()
 pg.init()
+pg.font.init()
 
 
 def vector(pos1, pos2):
