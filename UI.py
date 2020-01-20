@@ -8,123 +8,79 @@ def render_text(text, _color, size):
     return fontObj, image
 
 
-class UIElement:
-    _buttons = set()
-    activated = set()
-
-    def __init__(self, rect, image):
-        self.rect = rect
-        self.image = image
-
-    def draw(self):
-        app.blit(self.image, self.rect)
-
-    def activate(self):
-        if self not in self.activated:
-            self.activated.add(weakref.ref(self))
-
-    def deactivate(self):
-        if self in self.activated:
-            self.activated.remove(self)
-
-    def toggle(self):
-        if self in self.activated:
-            self.activated.remove(self)
-        else:
-            self.activated.add(weakref.ref(self))
-
-    @classmethod
-    def get_buttons(cls):
-        dead = set()
-        for ref in cls._buttons:
-            obj = ref()
-            if obj is not None:
-                yield obj
-            else:
-                dead.add(ref)
-        cls._buttons -= dead
-
-    @classmethod
-    def get_active(cls):
-        dead = set()
-        for ref in cls.activated:
-            obj = ref()
-            if obj is not None:
-                yield obj
-            else:
-                dead.add(ref)
-        cls.activated -= dead
-
-    @classmethod
-    def click(cls, pos):
-        for b in cls.get_buttons():
-            if pos.collidepoint(b.rect):
-                b.activate()
-
-    @classmethod
-    def hover_cursor(cls, pos):
-        for b in cls.get_buttons():
-            b.hover()
-
-
-class Text(UIElement):
-    def __init__(self, pos, text, _color, size):
+class Text:
+    def __init__(self, text, _color, size):
         self.fontObj, self.image = render_text(text, _color, size)
-        self.rect = pg.Rect(pos[0], pos[1], self.image.get_width(), self.image.get_height())
-        super().__init__(self.rect, self.image)
 
     def get_width(self):
-        return self.rect[2]
+        return self.image.get_width()
 
     def get_height(self):
-        return self.rect[3]
+        return self.image.get_height()
 
 
-class Button(UIElement):
-    def __init__(self, rect, **kwargs):
-        width = rect[2]
-        height = rect[3]
-        self.textSize = int(min(width, height) * 0.6)
+class UI:
+    _instances = set()
+    _active = set()
 
+    def __init__(self, pos, area, text, **kwargs):
+        self.pos = pos
+        self.surface = pg.Surface(area)
+        self.rect = pg.Rect(pos[0], pos[1], area[0], area[1])
         self.bg = black
-        self.fg = red
-        self.highlight = black
-        self.text = ''
-        self.backing = pg.Surface((width, height))
-        if kwargs is not None:
-            for key, value in kwargs.items():
-                if key == 'bg':
-                    self.bg = value
-                if key == 'fg':
-                    self.fg = value
-                if key == 'text':
-                    self.text = Text((self.rect.centerx, self.rect.centery), value, self.fg, self.textSize)
-                if key == 'highlight':
-                    self.highlight = value
-                if key == 'size':
-                    self.textSize = value
-        self.backing.fill(self.bg)
-        self.text = Text(self.rect, self.text, self.fg, self.textSize)
-        self.surface = pg.Surface(max(self.text.get_width, self.rect.width),
-                                  max(self.text.get_height(), self.rect.height))
-        textX = (self.backing.get_width() // 2) - (self.text.get_width() // 2)
-        textY = (self.backing.get_height() // 2) - (self.text.get_height() // 2)
-        self.surface.blit(self.backing, (0, 0))
+        self.fg = white
+        self.textSize = int(max(area[0], area[1]) * .8)
+        for key, value in kwargs.items():
+            if key == 'size':
+                self.textSize = value
+            if key == 'fg':
+                self.fg = value
+            if key == 'bg':
+                self.bg = value
+        self.text = Text(text, self.fg, self.textSize)
+        textX = (area[0] / 2) - (self.text.get_width() / 2)
+        textY = (area[1] / 2) - (self.text.get_height() / 2)
+        self.surface.fill(self.bg)
         self.surface.blit(self.text, (textX, textY))
-        super().__init__(rect, self.surface)
-        UIElement._buttons.add(weakref.ref(self))
-
-    def activate(self):
-        pass
-
-    def draw(self):
-        app.blit(self.surface, self.rect)
-        self.text.draw()
+        self._instances.add(weakref.ref(self))
 
     def move(self, pos):
-        self.rect.x, self.rect.y = pos
-        self.text.rect.x, self.text.rect.y = pos
+        self.rect.center = pos
+
+    def edit(self, **kwargs):
+        text = None
+        for key, value in kwargs.items():
+            if key == 'text':
+                text = value
+            if key == 'size':
+                self.textSize = value
+            if key == 'fg':
+                self.fg = value
+            if key == 'bg':
+                self.bg = value
+        self.surface.fill(self.bg)
+        if text is not None:
+            self.text = Text(text, self.fg, self.textSize)
+        textX = (self.rect.width / 2) - (self.text.get_width() / 2)
+        textY = (self.rect.height / 2) - (self.text.get_height() / 2)
+        self.surface.blit(self.text, (textX, textY))
+
+    def activate(self):
+        self._active.add(weakref.ref(self))
+
+    def deactivate(self):
+        if weakref.ref(self) in self._active:
+            self._active.remove(weakref.ref(self))
+
+    @classmethod
+    def draw(cls):
+        for ui in cls._active:
+            app.blit(ui.surface, ui.rect)
+
+
+def quit_game():
+    pg.quit()
+    sys.exit()
 
 
 # Main Menu
-

@@ -32,14 +32,16 @@ green = (0, 255, 0)
 blue = (0, 0, 255)
 
 fps = 60
-dis_width = 1024
-dis_height = 640
-app = pg.display.set_mode((dis_width, dis_height))
-playArea = pg.Rect(0, 0, dis_width, dis_height)
+disWidth = 1024
+disHeight = 640
+app = pg.display.set_mode((disWidth, disHeight))
+playArea = pg.Rect(0, 0, disWidth, disHeight)
 tileGrid = 64
 
-gridWidth = int(dis_width / tileGrid)
-gridHeight = int(dis_height / tileGrid)
+mainMenu = True
+
+gridWidth = int(disWidth / tileGrid)
+gridHeight = int(disHeight / tileGrid)
 
 fontName = "m3x6.ttf"
 roomsDirectory = 'levels'

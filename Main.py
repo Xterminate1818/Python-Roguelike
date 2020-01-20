@@ -2,7 +2,6 @@ from init import *
 from Entities import *
 from LevelEditor import *
 from UI import *
-
 # Game init
 if __name__ == "__main__":
     # Room init
@@ -12,6 +11,9 @@ if __name__ == "__main__":
     MovementComponent.collision = currentRoom.collision
     Enemy.pathMap = currentRoom.pathMap.get()
 
+    isPaused = False
+    isMainMenu = True
+    enable(mainMenu)
     # Init clock
     clock = pg.time.Clock()
     start_time = time.time()
@@ -26,13 +28,8 @@ if __name__ == "__main__":
     # Enemies
     Enemy.matrix_spawn(currentRoom.enemyMap)
 
-    mainMenu = True
-
     # Game Loop
     while True:
-        while mainMenu:
-            app.fill(black)
-
         appTime = time.time() - start_time
         app.fill(black)
         Enemy.target = p.rect
@@ -66,7 +63,14 @@ if __name__ == "__main__":
             currentRoom = Room.get_random()
             p.rect.x, p.rect.y = currentRoom.spawnPoint
             MovementComponent.collision = currentRoom.collision
-
+            Enemy.matrix_spawn(currentRoom.enemyMap)
+        enemies = []
+        for e in Enemy.get_instances():
+            enemies.append(e)
+        if len(enemies) < 1:
+            currentRoom.exitOpen = True
+        else:
+            currentRoom.exitOpen = False
         MovementComponent.move_all()
         currentRoom.draw()
         Entity.tick_all(currentRoom)

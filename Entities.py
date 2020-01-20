@@ -60,12 +60,12 @@ class Projectile(Entity):
     _instances = set()
     clsList = []
 
-    def __init__(self, pos, vec, image, speed, ignore):
+    def __init__(self, pos, vec, image, speed, *args):
         self.image = image
         super().__init__(pos, self.image)
         self.vector = vec
         self.speed = speed
-        self.damage = Damage(1, 0, ignore)
+        self.damage = Damage(1, 0, args)
         self.movement = ProjectileMovement(self.rect, self.vector, self.speed)
         self._instances.add(weakref.ref(self))
         Entity._instances.add(weakref.ref(self))
@@ -117,6 +117,7 @@ class Player(Entity):
         self.specialCD = 5
         self.lastSpecial = self.initTime
         self.specialAvailable = True
+        self.specialRange = 10
         self._instances.add(weakref.ref(self))
         Entity._instances.add(weakref.ref(self))
 
@@ -199,6 +200,7 @@ class Enemy(Entity):
         Entity._instances.add(weakref.ref(self))
 
     def tick(self, room):
+        self.pathMap = room.pathMap
         self.canAttack = True if time.time() - self.lastAttack > self.attackCD else False
 
         self.gridX = math.floor(self.rect.x / tileGrid)
@@ -207,6 +209,7 @@ class Enemy(Entity):
         self.targetX = math.floor(Enemy.target.x / tileGrid)
         self.targetY = math.floor(Enemy.target.y / tileGrid)
         self.path.target = [self.targetX, self.targetY]
+        self.path.pathMap = self.pathMap
         destination = self.path.next_location()
         destination[0] *= tileGrid
         destination[1] *= tileGrid
@@ -222,7 +225,8 @@ class Enemy(Entity):
             self.kill()
 
     def kill(self):
-        Enemy.clsList.remove(self)
+        if self in Enemy.clsList:
+            Enemy.clsList.remove(self)
         del self
 
     @classmethod

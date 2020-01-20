@@ -204,7 +204,7 @@ class PathFinding(Attribute):
         self.ignore = None
 
     def pathfind(self):
-        grid = Grid(matrix=self.pathMap)
+        grid = Grid(matrix=self.pathMap.grid)
         start = grid.node(self.loc[0], self.loc[1])
         end = grid.node(math.floor(self.target[0]), math.floor(self.target[1]))
         finder = AStarFinder()
@@ -212,11 +212,12 @@ class PathFinding(Attribute):
         self.path = path
         if len(self.path) > 1:
             self.destination = self.path[1]
-        else:
+        elif len(self.path) != 0:
             self.destination = path[0]
 
     def next_location(self):
-        self.pathfind()
+        if self.pathMap is not None:
+            self.pathfind()
         return list(self.destination)
 
 
