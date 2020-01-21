@@ -13,6 +13,8 @@ from pathfinding.finder.a_star import AStarFinder
 from pygame.locals import *
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 
+UIEvent = pg.USEREVENT+1
+
 random.seed()
 pg.init()
 pg.font.init()
@@ -37,8 +39,6 @@ disHeight = 640
 app = pg.display.set_mode((disWidth, disHeight))
 playArea = pg.Rect(0, 0, disWidth, disHeight)
 tileGrid = 64
-
-mainMenu = True
 
 gridWidth = int(disWidth / tileGrid)
 gridHeight = int(disHeight / tileGrid)

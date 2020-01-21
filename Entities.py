@@ -94,7 +94,7 @@ class Player(Entity):
         super().__init__(pos, self.lookingRight)
         self.initTime = time.time()
 
-        self.health = Health(5, self.rect, 1)
+        self.health = Health(Player, 5, self.rect, 1)
         self.movement = PhysicsMovement(self.rect, self.speed)
         self.idleRight = Animation(playerIdleRight, 8)
         self.idleLeft = Animation(playerIdleLeft, 8)
@@ -156,7 +156,7 @@ class Player(Entity):
         if self.attackAvailable:
             self.lastAttack = time.time()
             vec = vector(self.attackSource, destination)
-            Projectile.add(Projectile(self.attackSource, vec, fireSpell, 10, [self.health]))
+            Projectile.add(Projectile(self.attackSource, vec, fireSpell, 10, Enemy))
 
     @classmethod
     def get_instances(cls):
@@ -188,8 +188,8 @@ class Enemy(Entity):
         self.speed = 4
 
         self.movement = PhysicsMovement(self.rect, self.speed)
-        self.health = Health(3, self.rect, 0)
-        self.damage = Damage(1, .7, [self.health])
+        self.health = Health(Enemy, 3, self.rect, 0)
+        self.damage = Damage(1, .7, Player)
 
         self.attackCD = 1
         self.lastAttack = time.time()

@@ -136,8 +136,8 @@ class Attribute:
 
 
 class Health(Attribute):
-
-    def __init__(self, health, hitbox, damageCD):
+    def __init__(self, parent, health, hitbox, damageCD):
+        self.parent = parent
         self.maxHealth = health
         self.health = health
         self.hitbox = hitbox
@@ -156,10 +156,10 @@ class Health(Attribute):
 
 
 class Damage(Attribute):
-    def __init__(self, damage, damageCD, ignore):
+    def __init__(self, damage, damageCD, targetClass):
         self.damageCD = damageCD
         self.damage = damage
-        self.ignore = list(ignore)
+        self.targetClass = targetClass
         self.lastDamage = time.time()
         Attribute.damageComp.add(weakref.ref(self))
 
@@ -167,8 +167,9 @@ class Damage(Attribute):
         if time.time() - self.lastDamage >= self.damageCD:
             self.lastDamage = time.time()
             for i in Attribute.health():
-                if rect.colliderect(i.hitbox) and i not in self.ignore:
+                if rect.colliderect(i.hitbox) and i.parent == self.targetClass:
                     i.health -= self.damage
+                    print('damage')
 
     def target(self, target):
         target.health -= self.damage

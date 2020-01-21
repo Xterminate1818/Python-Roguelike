@@ -13,7 +13,9 @@ if __name__ == "__main__":
 
     isPaused = False
     isMainMenu = True
-    enable(mainMenu)
+
+    activate(menu)
+
     # Init clock
     clock = pg.time.Clock()
     start_time = time.time()
@@ -30,6 +32,49 @@ if __name__ == "__main__":
 
     # Game Loop
     while True:
+        while isMainMenu:
+            app.fill(black)
+            UI.draw()
+            pg.display.flip()
+            clock.tick(fps / 2)
+            for e in pg.event.get():
+                if e.type == QUIT:
+                    pg.quit()
+                    sys.exit()
+                if e.type == UIEvent:
+                    if e.id == 'menuStart':
+                        deactivate(menu)
+                        isMainMenu = False
+                    if e.id == 'menuQuit':
+                        quit_game()
+                if e.type == MOUSEBUTTONDOWN:
+                    mouseLoc = pg.mouse.get_pos()
+                    UI.click(mouseLoc)
+        while isPaused:
+            app.fill(black)
+            UI.draw()
+            pg.display.flip()
+            clock.tick(fps / 2)
+            for e in pg.event.get():
+                if e.type == QUIT:
+                    pg.quit()
+                    sys.exit()
+                if e.type == UIEvent:
+                    if e.id == 'pausedResume':
+                        deactivate(paused)
+                        isPaused = False
+                    if e.id == 'pausedReturn':
+                        deactivate(paused)
+                        activate(menu)
+                        isMainMenu = True
+                        isPaused = False
+                if e.type == KEYUP:
+                    if e.key == K_ESCAPE:
+                        deactivate(paused)
+                        isPaused = False
+                if e.type == MOUSEBUTTONDOWN:
+                    mouseLoc = pg.mouse.get_pos()
+                    UI.click(mouseLoc)
         appTime = time.time() - start_time
         app.fill(black)
         Enemy.target = p.rect
@@ -57,6 +102,9 @@ if __name__ == "__main__":
                     p.dx -= -1
                 if e.key == K_d:
                     p.dx -= 1
+                if e.key == K_ESCAPE:
+                    activate(paused)
+                    isPaused = True
         if pg.mouse.get_pressed()[0]:
             p.attack(mouseLoc)
         if p.rect.colliderect(currentRoom.exitRect) and currentRoom.exitOpen:
