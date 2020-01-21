@@ -9,7 +9,6 @@ if __name__ == "__main__":
         Room.add_instance(r)
     currentRoom = Room.get_random()
     MovementComponent.collision = currentRoom.collision
-    Enemy.pathMap = currentRoom.pathMap.get()
 
     isPaused = False
     isMainMenu = True
@@ -27,8 +26,6 @@ if __name__ == "__main__":
     # Init player
     p = Player(currentRoom.spawnPoint)
 
-    # Enemies
-    Enemy.matrix_spawn(currentRoom.enemyMap)
 
     # Game Loop
     while True:
@@ -77,7 +74,6 @@ if __name__ == "__main__":
                     UI.click(mouseLoc)
         appTime = time.time() - start_time
         app.fill(black)
-        Enemy.target = p.rect
         # Mouse logic
         mouseLoc = pg.mouse.get_pos()
         for e in pg.event.get():
@@ -111,14 +107,7 @@ if __name__ == "__main__":
             currentRoom = Room.get_random()
             p.rect.x, p.rect.y = currentRoom.spawnPoint
             MovementComponent.collision = currentRoom.collision
-            Enemy.matrix_spawn(currentRoom.enemyMap)
-        enemies = []
-        for e in Enemy.get_instances():
-            enemies.append(e)
-        if len(enemies) < 1:
-            currentRoom.exitOpen = True
-        else:
-            currentRoom.exitOpen = False
+        currentRoom.exitOpen = True
         MovementComponent.move_all()
         currentRoom.draw()
         Entity.tick_all(currentRoom)

@@ -56,35 +56,6 @@ class Entity:
         return col
 
 
-class Projectile(Entity):
-    _instances = set()
-    clsList = []
-
-    def __init__(self, pos, vec, image, speed, *args):
-        self.image = image
-        super().__init__(pos, self.image)
-        self.vector = vec
-        self.speed = speed
-        self.damage = Damage(1, 0, args)
-        self.movement = ProjectileMovement(self.rect, self.vector, self.speed)
-        self._instances.add(weakref.ref(self))
-        Entity._instances.add(weakref.ref(self))
-
-    def tick(self, room):
-        self.rect = self.movement.move()
-        if self.rect is not None:
-            self.damage.rect(self.rect)
-        if not self.movement.alive or Enemy.test_collide(self.rect):
-            Projectile.clsList.remove(self)
-            self.kill()
-        else:
-            self.draw()
-
-    @classmethod
-    def add(cls, p):
-        Projectile.clsList.append(p)
-
-
 class Player(Entity):
     _instances = set()
 
@@ -94,8 +65,8 @@ class Player(Entity):
         super().__init__(pos, self.lookingRight)
         self.initTime = time.time()
 
-        self.health = Health(Player, 5, self.rect, 1)
-        self.movement = PhysicsMovement(self.rect, self.speed)
+        self.health = Health(5, self.rect, 1, Player)
+        self.movement = Movement(self.speed)
         self.idleRight = Animation(playerIdleRight, 8)
         self.idleLeft = Animation(playerIdleLeft, 8)
         self.movingRight = Animation(playerRunningRight, 8)
@@ -126,7 +97,6 @@ class Player(Entity):
         self.abilityAvailable = True if time.time() - self.lastAbility > self.abilityCD else False
         self.specialAvailable = True if time.time() - self.lastSpecial > self.specialCD else False
         self.attackSource = [self.rect.x + self.attackOffset[0], self.rect.y + self.attackOffset[1]]
-        Enemy.target = self.rect
 
         if self.dx > 0:
             self.facing = 'right'
@@ -146,9 +116,7 @@ class Player(Entity):
         self.movement.dx = self.dx
         self.movement.dy = self.dy
         self.health.hitbox = self.rect
-        self.movement.rect = self.rect
-        if frame is not None:
-            app.blit(frame, self.rect)
+        app.blit(frame, self.rect)
         if self.health.health <= 0:
             self.kill()
 
@@ -156,7 +124,7 @@ class Player(Entity):
         if self.attackAvailable:
             self.lastAttack = time.time()
             vec = vector(self.attackSource, destination)
-            Projectile.add(Projectile(self.attackSource, vec, fireSpell, 10, Enemy))
+            Projectile.add(Projectile(self.attackSource, vec, fireSpell, 10))
 
     @classmethod
     def get_instances(cls):
@@ -169,73 +137,3 @@ class Player(Entity):
                 dead.add(ref)
         cls._instances -= dead
 
-
-class Enemy(Entity):
-    _instances = set()
-    clsList = []
-    pathMap = []
-    target = pg.Rect(0, 0, 0, 0)
-
-    def __init__(self, pos):
-        self.image = evilEye
-        super().__init__(pos, self.image)
-
-        self.gridX = math.floor(pos[0]/tileGrid)
-        self.gridY = math.floor(pos[1]/tileGrid)
-        self.targetX = math.floor(Enemy.target.centerx / tileGrid)
-        self.targetY = math.floor(Enemy.target.centery / tileGrid)
-        self.path = PathFinding(Enemy.pathMap, (self.gridX, self.gridY), (self.targetX, self.targetY))
-        self.speed = 4
-
-        self.movement = PhysicsMovement(self.rect, self.speed)
-        self.health = Health(Enemy, 3, self.rect, 0)
-        self.damage = Damage(1, .7, Player)
-
-        self.attackCD = 1
-        self.lastAttack = time.time()
-        self.canAttack = True
-
-        self.range = 10
-        self._instances.add(weakref.ref(self))
-        Entity._instances.add(weakref.ref(self))
-
-    def tick(self, room):
-        self.pathMap = room.pathMap
-        self.canAttack = True if time.time() - self.lastAttack > self.attackCD else False
-
-        self.gridX = math.floor(self.rect.x / tileGrid)
-        self.gridY = math.floor(self.rect.y / tileGrid)
-        self.path.loc = [self.gridX, self.gridY]
-        self.targetX = math.floor(Enemy.target.x / tileGrid)
-        self.targetY = math.floor(Enemy.target.y / tileGrid)
-        self.path.target = [self.targetX, self.targetY]
-        self.path.pathMap = self.pathMap
-        destination = self.path.next_location()
-        destination[0] *= tileGrid
-        destination[1] *= tileGrid
-
-        self.dx, self.dy = vector((self.rect.x, self.rect.y), destination)
-        self.movement.dx = self.dx
-        self.movement.dy = self.dy
-        self.movement.rect = self.rect
-        self.health.hitbox = self.rect
-        self.damage.rect(self.rect)
-        self.draw()
-        if self.health.health <= 0:
-            self.kill()
-
-    def kill(self):
-        if self in Enemy.clsList:
-            Enemy.clsList.remove(self)
-        del self
-
-    @classmethod
-    def spawn(cls, pos):
-        Enemy.clsList.append(Enemy(pos))
-
-    @staticmethod
-    def matrix_spawn(matrix):
-        for y, row in enumerate(matrix):
-            for x, col in enumerate(row):
-                if col in enemyData:
-                    Enemy.spawn([x * tileGrid, y * tileGrid])

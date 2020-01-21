@@ -1,109 +1,68 @@
 import weakref
 import pygame as pg
+from init import *
 import time
 import math
 from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder
 
 
-class MovementComponent:
+class Movement:
     collision = []
-    _instances = set()
 
-    def __init__(self, rect):
-        self.rect = rect
+    def __init__(self, speed):
+        self.speed = speed
         self.dx = 0
         self.dy = 0
-        self._instances.add(weakref.ref(self))
 
-    def move(self):
-        self.rect.centerx += self.dx
-        self.rect.centery += self.dy
-        return self.rect
-
-    @staticmethod
-    def move_all():
-        for i in MovementComponent.get_instances():
-            i.move()
-
-    def get_pos(self):
-        return [self.rect.x, self.rect.y]
-
-    def get_rect(self):
-        return self.rect
-
-    def check_collision(self):
+    def check_collision(self, rect):
         collisions = []
         for c in self.collision:
-            if self.rect.colliderect(c):
+            if rect.colliderect(c):
                 collisions.append(c)
         return collisions
 
-    @classmethod
-    def get_instances(cls):
-        dead = set()
-        for ref in cls._instances:
-            obj = ref()
-            if obj is not None:
-                yield obj
-            else:
-                dead.add(ref)
-        cls._instances -= dead
+    def move(self, rect, **kwargs):
+        dx = self.dx
+        dy = self.dy
+        limit = 1
+        for key, value in kwargs.items():
+            if key == 'dx':
+                dx = value
+            if key == 'dy':
+                dy = value
+            if key == 'limit':
+                limit = value
 
-
-class PhysicsMovement(MovementComponent):
-    def __init__(self, rect, speed):
-        self.speed = speed
-        super().__init__(rect)
-        self._instances.add(weakref.ref(self))
-        MovementComponent._instances.add(weakref.ref(self))
-
-    def move(self):
-        if self.dx > 1:
-            self.dx = 1
-        if self.dx < -1:
-            self.dx = -1
-        if self.dy > 1:
-            self.dy = 1
-        if self.dy < -1:
-            self.dy = -1
-        if abs(self.dx) + abs(self.dy) > 1:
-            self.dx *= .707
-            self.dy *= .707
-        self.rect.centerx += self.dx * self.speed
-        collisions = self.check_collision()
+        collision = False
+        if dx > limit:
+            dx = limit
+        if dx < -limit:
+            dx = -limit
+        if dy > limit:
+            dy = limit
+        if dy < -limit:
+            dy = -limit
+        if abs(dx) + abs(dy) > limit:
+            dx *= .707
+            dy *= .707
+        rect.centerx += dx * self.speed
+        collisions = self.check_collision(rect)
         for c in collisions:
-            if self.dx > 0:
-                self.rect.right = c.left
-            if self.dx < 0:
-                self.rect.left = c.right
-        self.rect.centery += self.dy * self.speed
-        collisions = self.check_collision()
+            collision = True
+            if dx > 0:
+                rect.right = c.left
+            if dx < 0:
+                rect.left = c.right
+        rect.centery += dy * self.speed
+        collisions = self.check_collision(rect)
         for c in collisions:
-            if self.dy > 0:
-                self.rect.bottom = c.top
-            if self.dy < 0:
-                self.rect.top = c.bottom
-
-
-class ProjectileMovement(MovementComponent):
-    def __init__(self, rect, vector, speed):
-        self.speed = speed
-        self.vec = list(vector)
-        self.vec[0] *= speed
-        self.vec[1] *= speed
-        self.alive = True
-        super().__init__(rect)
-        self._instances.add(weakref.ref(self))
-        MovementComponent._instances.add(weakref.ref(self))
-
-    def move(self):
-        self.rect.x += self.vec[0]
-        self.rect.y += self.vec[1]
-        if len(self.check_collision()) > 0:
-            self.alive = False
-        else:
-            return self.rect
+            collision = True
+            if dy > 0:
+                rect.bottom = c.top
+            if dy < 0:
+                rect.top = c.bottom
+        return rect, collision
 
 
 ##############################################
@@ -134,15 +93,18 @@ class Attribute:
                 dead.add(ref)
         cls.damageComp -= dead
 
+    def tick(self):
+        pass
+
 
 class Health(Attribute):
-    def __init__(self, parent, health, hitbox, damageCD):
-        self.parent = parent
+    def __init__(self, health, hitbox, damageCD, *args):
         self.maxHealth = health
         self.health = health
         self.hitbox = hitbox
         self.damageCD = damageCD
         self.lastDamage = time.time()
+        self.immune = args
         Attribute.healthComp.add(weakref.ref(self))
 
     def heal_self(self, amount):
@@ -156,10 +118,10 @@ class Health(Attribute):
 
 
 class Damage(Attribute):
-    def __init__(self, damage, damageCD, targetClass):
+    def __init__(self, damage, damageCD, type):
         self.damageCD = damageCD
         self.damage = damage
-        self.targetClass = targetClass
+        self.type = type
         self.lastDamage = time.time()
         Attribute.damageComp.add(weakref.ref(self))
 
@@ -167,9 +129,8 @@ class Damage(Attribute):
         if time.time() - self.lastDamage >= self.damageCD:
             self.lastDamage = time.time()
             for i in Attribute.health():
-                if rect.colliderect(i.hitbox) and i.parent == self.targetClass:
+                if rect.colliderect(i.hitbox) and self.type not in i.immune:
                     i.health -= self.damage
-                    print('damage')
 
     def target(self, target):
         target.health -= self.damage
@@ -220,6 +181,37 @@ class PathFinding(Attribute):
         if self.pathMap is not None:
             self.pathfind()
         return list(self.destination)
+
+
+class RangedAttack(Damage):
+    def __init__(self, surface, **kwargs):
+        self.surface = surface
+        speed = 10
+        self.cd = 1
+        damage = 1
+        type = None
+        for key, value in kwargs.items():
+            if key == 'damage':
+                damage = value
+            if key == 'cd':
+                self.cd = value
+            if key == 'speed':
+                speed = value
+            if key == 'type':
+                type = value
+        super().__init__(damage, 0, type)
+        self.movement = Movement(speed)
+        self.list = []
+
+    def fire(self, loc, dest):
+        vec = vector(loc, dest)
+        rect = pg.Rect(loc[0], loc[1], self.surface[0], self.surface[1])
+        self.list.append([rect, vec])
+
+    def tick(self):
+        for p in self.list:
+            p[0] = self.movement.move(p[0], dx=p[1][0], dy=p[1][1], limit=10)
+            app.blit(self.surface, p[0])
 
 
 #############################################

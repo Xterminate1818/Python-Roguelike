@@ -14,6 +14,7 @@ from pygame.locals import *
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 UIEvent = pg.USEREVENT+1
+CollisionEvent = pg.USEREVENT+2
 
 random.seed()
 pg.init()
