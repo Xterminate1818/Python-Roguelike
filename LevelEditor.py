@@ -116,9 +116,11 @@ class Room:
     def draw(self):
         for y, row in enumerate(self.tileMap):
             for x, col in enumerate(row):
-                app.blit(tileData[col][0], [x * tileGrid, y * tileGrid])
+                drawpos = [x * tileGrid + offset[0], y * tileGrid + offset[1]]
+                app.blit(tileData[col][0], drawpos)
         if self.exitOpen:
-            app.blit(ladder, self.exitRect)
+            drawpos = [self.exitRect[0] + offset[0], self.exitRect[1] + offset[1]]
+            app.blit(ladder, drawpos)
 
 
 spawn_icon = pg.image.load('textures/ui/spawn icon.bmp')

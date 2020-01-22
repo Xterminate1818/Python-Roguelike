@@ -1,4 +1,4 @@
-from init import *
+import init
 from Components import *
 
 
@@ -112,7 +112,11 @@ class Player(Entity):
         self.health.hitbox = self.rect
         self.rect = self.hitbox.inflate(20, 10)
         self.attackObj.tick()
-        app.blit(frame, self.rect)
+        drawrect = self.rect
+        drawrect[0] += init.offset[0]
+        drawrect[1] += init.offset[1]
+        if drawrect.colliderect(init.viewRect):
+            app.blit(frame, drawrect)
         if self.health.health <= 0:
             self.kill()
 

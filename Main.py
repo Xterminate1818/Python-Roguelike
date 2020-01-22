@@ -1,14 +1,26 @@
-from init import *
-from Entities import *
-from LevelEditor import *
+import init
+from init import app
+import Entities as Entity
+import LevelEditor as Level
 from UI import *
+import pygame as pg
+from pygame.locals import *
+import time
 # Game init
 if __name__ == "__main__":
+    black = (0, 0, 0)
+    white = (255, 255, 255)
+    red = (255, 0, 0)
+    green = (0, 255, 0)
+    blue = (0, 0, 255)
+
+    fps = 60
+    app = pg.display.set_mode((init.disWidth, init.disHeight))
     # Room init
-    for r in roomDirectoryList:
-        Room.add_instance(r)
-    currentRoom = Room.get_random()
-    Movement.collision = currentRoom.collision
+    for r in Level.roomDirectoryList:
+        Level.Room.add_instance(r)
+    currentRoom = Level.Room.get_random()
+    Entity.Movement.collision = currentRoom.collision
     isPaused = False
     isMainMenu = True
     activate(menu)
@@ -18,9 +30,9 @@ if __name__ == "__main__":
     appTime = time.time() - start_time
     # Init display
     pg.display.set_caption("Game Project")
-    Entity.kill_all()
+    Entity.Entity.kill_all()
     # Init player
-    p = Player(currentRoom.spawnPoint)
+    p = Entity.Player(currentRoom.spawnPoint)
 
     # Game Loop
     while True:
@@ -93,17 +105,27 @@ if __name__ == "__main__":
                     p.dx -= -1
                 if e.key == K_d:
                     p.dx -= 1
+                if e.key == K_LEFT:
+                    offset[0] += 100
+                if e.key == K_RIGHT:
+                    offset[0] -= 100
+                if e.key == K_UP:
+                    offset[1] += 100
+                if e.key == K_DOWN:
+                    offset[1] -= 100
                 if e.key == K_ESCAPE:
                     activate(paused)
                     isPaused = True
         if pg.mouse.get_pressed()[0]:
             p.attack(mouseLoc)
         if p.hitbox.colliderect(currentRoom.exitRect) and currentRoom.exitOpen:
-            currentRoom = Room.get_random()
+            currentRoom = Level.Room.get_random()
             p.hitbox.x, p.hitbox.y = currentRoom.spawnPoint
-            Movement.collision = currentRoom.collision
+            Entity.Movement.collision = currentRoom.collision
+        init.offset = (disWidth / 2 - p.rect.centerx, disHeight / 2 - p.rect.centery)
+        print(disWidth / 2 - p.rect.centerx, disHeight / 2 - p.rect.centery)
         currentRoom.exitOpen = True
         currentRoom.draw()
-        Entity.tick_all(currentRoom)
+        Entity.Entity.tick_all(currentRoom)
         pg.display.update()
         clock.tick(fps)

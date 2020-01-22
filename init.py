@@ -20,6 +20,12 @@ random.seed()
 pg.init()
 pg.font.init()
 
+offset = [0, 0]
+
+
+def move_offset(new):
+    global offset
+    offset = new
 
 def vector(pos1, pos2):
     radians = math.atan2(pos2[1] - pos1[1], pos2[0] - pos1[0])
@@ -72,7 +78,7 @@ fps = 60
 disWidth = 1024
 disHeight = 640
 app = pg.display.set_mode((disWidth, disHeight))
-playArea = pg.Rect(0, 0, disWidth, disHeight)
+viewRect = pg.Rect(0, 0, disWidth, disHeight)
 tileGrid = 64
 
 gridWidth = int(disWidth / tileGrid)
