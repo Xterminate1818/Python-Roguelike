@@ -8,13 +8,10 @@ if __name__ == "__main__":
     for r in roomDirectoryList:
         Room.add_instance(r)
     currentRoom = Room.get_random()
-    MovementComponent.collision = currentRoom.collision
-
+    Movement.collision = currentRoom.collision
     isPaused = False
     isMainMenu = True
-
     activate(menu)
-
     # Init clock
     clock = pg.time.Clock()
     start_time = time.time()
@@ -22,10 +19,8 @@ if __name__ == "__main__":
     # Init display
     pg.display.set_caption("Game Project")
     Entity.kill_all()
-
     # Init player
     p = Player(currentRoom.spawnPoint)
-
 
     # Game Loop
     while True:
@@ -103,12 +98,11 @@ if __name__ == "__main__":
                     isPaused = True
         if pg.mouse.get_pressed()[0]:
             p.attack(mouseLoc)
-        if p.rect.colliderect(currentRoom.exitRect) and currentRoom.exitOpen:
+        if p.hitbox.colliderect(currentRoom.exitRect) and currentRoom.exitOpen:
             currentRoom = Room.get_random()
-            p.rect.x, p.rect.y = currentRoom.spawnPoint
-            MovementComponent.collision = currentRoom.collision
+            p.hitbox.x, p.hitbox.y = currentRoom.spawnPoint
+            Movement.collision = currentRoom.collision
         currentRoom.exitOpen = True
-        MovementComponent.move_all()
         currentRoom.draw()
         Entity.tick_all(currentRoom)
         pg.display.update()

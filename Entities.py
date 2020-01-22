@@ -63,23 +63,18 @@ class Player(Entity):
         self.lookingRight = pg.image.load("textures/sprites/Player/wizard.bmp").convert_alpha()
         self.lookingLeft = pg.transform.flip(self.lookingRight, True, False)
         super().__init__(pos, self.lookingRight)
+        self.hitbox = self.rect.inflate(-20, -10)
         self.initTime = time.time()
 
-        self.health = Health(5, self.rect, 1, Player)
+        self.health = Health(5, self.hitbox, 1, Player)
         self.movement = Movement(self.speed)
+        self.attackObj = RangedAttack(fireSpell)
         self.idleRight = Animation(playerIdleRight, 8)
         self.idleLeft = Animation(playerIdleLeft, 8)
         self.movingRight = Animation(playerRunningRight, 8)
         self.movingLeft = Animation(playerRunningLeft, 8)
 
         self.facing = 'right'
-
-        self.attackOffset = [30, 6]
-        self.attackSource = [self.rect.x + self.attackOffset[0], self.rect.y + self.attackOffset[1]]
-
-        self.attackCD = 0.5
-        self.lastAttack = self.initTime
-        self.attackAvailable = True
 
         self.abilityCD = 3
         self.lastAbility = self.initTime
@@ -93,10 +88,8 @@ class Player(Entity):
         Entity._instances.add(weakref.ref(self))
 
     def tick(self, room):
-        self.attackAvailable = True if time.time() - self.lastAttack > self.attackCD else False
         self.abilityAvailable = True if time.time() - self.lastAbility > self.abilityCD else False
         self.specialAvailable = True if time.time() - self.lastSpecial > self.specialCD else False
-        self.attackSource = [self.rect.x + self.attackOffset[0], self.rect.y + self.attackOffset[1]]
 
         if self.dx > 0:
             self.facing = 'right'
@@ -115,16 +108,16 @@ class Player(Entity):
                 frame = self.movingLeft.next()
         self.movement.dx = self.dx
         self.movement.dy = self.dy
+        self.hitbox, _collided = self.movement.move(self.hitbox)
         self.health.hitbox = self.rect
+        self.rect = self.hitbox.inflate(20, 10)
+        self.attackObj.tick()
         app.blit(frame, self.rect)
         if self.health.health <= 0:
             self.kill()
 
     def attack(self, destination):
-        if self.attackAvailable:
-            self.lastAttack = time.time()
-            vec = vector(self.attackSource, destination)
-            Projectile.add(Projectile(self.attackSource, vec, fireSpell, 10))
+        self.attackObj.fire(self.hitbox.center, destination)
 
     @classmethod
     def get_instances(cls):

@@ -27,6 +27,40 @@ def vector(pos1, pos2):
     dy = math.sin(radians)
     return dx, dy
 
+# This class handles sprite sheets
+# This was taken from www.scriptefun.com/transcript-2-using
+# sprite-sheets-and-drawing-the-background
+# I've added some code to fail if the file wasn't found..
+# Note: When calling images_at the rect is the format:
+# (x, y, x + offset, y + offset)
+
+
+class Spritesheet(object):
+    def __init__(self, filename):
+        try:
+            self.sheet = pg.image.load(filename).convert()
+        except pg.error:
+            print('Unable to load spritesheet image:', filename)
+            raise SystemExit
+
+    # Load a specific image from a specific rectangle
+    def image_at(self, rectangle):
+        """"Loads image from x,y,x+offset,y+offset"""
+        rect = pg.Rect(rectangle)
+        image = pg.Surface(rect.size).convert()
+        image.blit(self.sheet, (0, 0), rect)
+        return image
+
+    # Load a lot of images and return them as a list
+    def images_at(self, rects):
+        return [self.image_at(rect) for rect in rects]
+
+    # Load a whole strip of images
+    def load_strip(self, rect, image_count):
+        strip = [(rect[0]+rect[2]*x, rect[1], rect[2], rect[3])
+                 for x in range(image_count)]
+        return self.images_at(strip)
+
 
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -127,8 +161,6 @@ fireSpell = pg.image.load("textures/projectiles/flare.bmp").convert_alpha()
 evilEye = pg.image.load("textures/sprites/Enemies/eye.bmp").convert_alpha()
 
 # Animations
-
-# Player
 playerIdleRight = [pg.image.load("textures/sprites/player/idle/f0.bmp"), pg.image.load("textures/sprites/player/idle/f1.bmp"), pg.image.load("textures/sprites/player/idle/f2.bmp"), pg.image.load("textures/sprites/player/idle/f3.bmp")]
 playerIdleLeft = []
 for index, item in enumerate(playerIdleRight):
@@ -138,6 +170,10 @@ playerRunningRight = [pg.image.load("textures/sprites/player/run/f0.bmp"), pg.im
 playerRunningLeft = []
 for index, item in enumerate(playerIdleRight):
     playerRunningLeft.insert(index, pg.transform.flip(item, True, False))
+
+fireball = Spritesheet("textures/projectiles/Small_Fireball_10x26.png")
+fireballMoving = fireball.load_strip(pg.Rect(0, 0, 100, 26), 10) 
+
 
 # UI imports
 heartFull = pg.image.load("textures/ui/full heart.bmp")

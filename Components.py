@@ -185,9 +185,10 @@ class PathFinding(Attribute):
 
 class RangedAttack(Damage):
     def __init__(self, surface, **kwargs):
+        self.lastAttack = time.time()
         self.surface = surface
         speed = 10
-        self.cd = 1
+        self.cd = 0.3
         damage = 1
         type = None
         for key, value in kwargs.items():
@@ -204,14 +205,20 @@ class RangedAttack(Damage):
         self.list = []
 
     def fire(self, loc, dest):
-        vec = vector(loc, dest)
-        rect = pg.Rect(loc[0], loc[1], self.surface[0], self.surface[1])
-        self.list.append([rect, vec])
+        if time.time() - self.lastAttack > self.cd:
+            vec = vector(loc, dest)
+            rect = pg.Rect(loc[0], loc[1], self.surface.get_width(), self.surface.get_height())
+            rect.center = loc
+            self.list.append([rect, vec])
+            self.lastAttack = time.time()
 
     def tick(self):
         for p in self.list:
-            p[0] = self.movement.move(p[0], dx=p[1][0], dy=p[1][1], limit=10)
-            app.blit(self.surface, p[0])
+            p[0], _col = self.movement.move(p[0], dx=p[1][0], dy=p[1][1], limit=999)
+            if _col:
+                self.list.remove(p)
+            else:
+                app.blit(self.surface, p[0])
 
 
 #############################################
