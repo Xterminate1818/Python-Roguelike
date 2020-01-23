@@ -54,7 +54,8 @@ class UI:
         textY = (area[1] / 2) - (self.text.get_height() / 2)
         self.surface.fill(self.bg)
         self.surface.blit(self.text.image, (textX, textY))
-        self.image = Image(self.surface, self.rect)
+        self.image = Image(self.surface)
+        self.location = self.rect
         self._instances.add(weakref.ref(self))
 
     def move(self, pos):
@@ -78,6 +79,7 @@ class UI:
         textY = (self.rect.height / 2) - (self.text.get_height() / 2)
         self.surface.blit(self.text, (textX, textY))
         self.image = Image(self.surface)
+        self.image.location = self.rect
 
     def activate(self):
         self._active.add(self)
@@ -87,7 +89,7 @@ class UI:
             self._active.remove(self)
 
     def draw_self(self):
-        self.image.blit(self.surface)
+        self.image.blit(self.rect)
 
     @classmethod
     def draw(cls):

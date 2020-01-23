@@ -51,6 +51,7 @@ class Player(Entity):
     def __init__(self, pos):
         self.lookingRight = pg.image.load("textures/sprites/Player/wizard.bmp").convert_alpha()
         self.lookingLeft = pg.transform.flip(self.lookingRight, True, False)
+        self.image = self.lookingRight
         super().__init__(pos, self.lookingRight)
         self.hitbox = self.rect.inflate(-20, -10)
         self.initTime = time.time()
@@ -101,6 +102,8 @@ class Player(Entity):
         self.health.hitbox = self.rect
         self.rect = self.hitbox.inflate(20, 10)
         self.attackObj.tick()
+        self.image.image = frame
+        self.image.blit(self.rect)
         if self.health.health <= 0:
             self.kill()
 

@@ -101,22 +101,22 @@ class Image(Attribute):
     surf = None
     _instances = set()
 
-    def __init__(self, image, location=None):
+    def __init__(self, image):
         self.image = image
-        self.width = self.image.get_width()
-        self.height = self.image.get_height()
         self.rect = image.get_rect()
-        self.location = location
         self._instances.add(weakref.ref(self))
 
+    def get_height(self):
+        return self.image.get_height()
+
+    def get_width(self):
+        return self.image.get_width()
+
     def blit(self, location=None):
-        if location is None and self.location is not None:
-            location = self.location
-        if self.location is None:
-            print('No position available')
-        elif self.surf is None:
+        if self.surf is None:
             print('Surface not set')
         else:
+            print(location)
             self.surf.blit(self.image, location)
 
     @classmethod
@@ -246,7 +246,7 @@ class RangedAttack(Damage):
     def fire(self, loc, dest):
         if time.time() - self.lastAttack > self.cd:
             vec = vector(loc, dest)
-            rect = pg.Rect(loc[0], loc[1], self.image.width, self.image.height)
+            rect = pg.Rect(loc[0], loc[1], self.image.get_width(), self.image.get_height())
             rect.center = loc
             self.list.append([rect, vec])
             self.lastAttack = time.time()
