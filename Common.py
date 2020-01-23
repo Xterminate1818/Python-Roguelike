@@ -1,31 +1,11 @@
 import math
 import os
 import random
-import sys
-import time
-import gc
-import weakref
-
-import mpu
 import pygame as pg
-from pathfinding.core.grid import Grid
-from pathfinding.finder.a_star import AStarFinder
-from pygame.locals import *
+
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 
-UIEvent = pg.USEREVENT+1
-CollisionEvent = pg.USEREVENT+2
-
 random.seed()
-pg.init()
-pg.font.init()
-
-offset = [0, 0]
-
-
-def move_offset(new):
-    global offset
-    offset = new
 
 def vector(pos1, pos2):
     radians = math.atan2(pos2[1] - pos1[1], pos2[0] - pos1[0])
@@ -84,7 +64,6 @@ tileGrid = 64
 gridWidth = int(disWidth / tileGrid)
 gridHeight = int(disHeight / tileGrid)
 
-fontName = "m3x6.ttf"
 roomsDirectory = 'levels'
 
 roomDirectoryList = []

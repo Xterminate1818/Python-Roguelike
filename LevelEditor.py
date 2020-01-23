@@ -1,9 +1,10 @@
-from init import *
+from Common import *
 import pygame as pg
 import math
 from tkinter import *
 from tkinter import filedialog, messagebox
 import mpu
+import weakref
 
 
 class Matrix:
@@ -116,10 +117,10 @@ class Room:
     def draw(self):
         for y, row in enumerate(self.tileMap):
             for x, col in enumerate(row):
-                drawpos = [x * tileGrid + offset[0], y * tileGrid + offset[1]]
+                drawpos = [x * tileGrid, y * tileGrid]
                 app.blit(tileData[col][0], drawpos)
         if self.exitOpen:
-            drawpos = [self.exitRect[0] + offset[0], self.exitRect[1] + offset[1]]
+            drawpos = [self.exitRect[0], self.exitRect[1]]
             app.blit(ladder, drawpos)
 
 

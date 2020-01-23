@@ -1,14 +1,14 @@
-import init
 from Components import *
-
+from Common import *
 
 class Entity:
     _instances = set()
 
     def __init__(self, pos, image):
-        self.image = image
-        self.rect = self.image.get_rect()
+        self.image = Image(image)
+        self.rect = self.image.rect
         self.rect.x, self.rect.y = pos
+        self.image.location = self.rect
         self.width = self.rect.width
         self.height = self.rect.height
 
@@ -17,19 +17,16 @@ class Entity:
         self.speed = 5
         self._instances.add(weakref.ref(self))
 
-    def draw(self):
-        app.blit(self.image, self.rect)
-
-    def tick(self, room):
-        self.draw()
+    def tick(self):
+        pass
 
     def kill(self):
         del self
 
     @classmethod
-    def tick_all(cls, room):
+    def tick_all(cls):
         for i in cls.get_instances():
-            i.tick(room)
+            i.tick()
 
     @classmethod
     def kill_all(cls):
@@ -46,14 +43,6 @@ class Entity:
             else:
                 dead.add(ref)
         cls._instances -= dead
-
-    @classmethod
-    def test_collide(cls, rect):
-        col = False
-        for i in cls.get_instances():
-            if rect.colliderect(i.rect):
-                col = True
-        return col
 
 
 class Player(Entity):
@@ -87,7 +76,7 @@ class Player(Entity):
         self._instances.add(weakref.ref(self))
         Entity._instances.add(weakref.ref(self))
 
-    def tick(self, room):
+    def tick(self):
         self.abilityAvailable = True if time.time() - self.lastAbility > self.abilityCD else False
         self.specialAvailable = True if time.time() - self.lastSpecial > self.specialCD else False
 
@@ -112,11 +101,6 @@ class Player(Entity):
         self.health.hitbox = self.rect
         self.rect = self.hitbox.inflate(20, 10)
         self.attackObj.tick()
-        drawrect = self.rect
-        drawrect[0] += init.offset[0]
-        drawrect[1] += init.offset[1]
-        if drawrect.colliderect(init.viewRect):
-            app.blit(frame, drawrect)
         if self.health.health <= 0:
             self.kill()
 

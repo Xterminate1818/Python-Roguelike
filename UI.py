@@ -1,5 +1,12 @@
 import pygame as pg
-from init import *
+import weakref
+from Components import Image
+import sys
+
+pg.font.init()
+
+defaultFont = "m3x6.ttf"
+fontName = defaultFont
 
 
 def render_text(text, _color, size):
@@ -19,6 +26,9 @@ class Text:
         return self.image.get_height()
 
 
+UIEvent = pg.USEREVENT + 1
+
+
 class UI:
     _instances = set()
     _active = set()
@@ -29,8 +39,8 @@ class UI:
         self.surface = pg.Surface(area)
         self.rect = pg.Rect(pos[0], pos[1], area[0], area[1])
         self.rect.center = pos
-        self.bg = black
-        self.fg = white
+        self.bg = (0, 0, 0)
+        self.fg = (255, 255, 255)
         self.textSize = int(min(area[0], area[1]) * .9)
         for key, value in kwargs.items():
             if key == 'size':
@@ -44,6 +54,7 @@ class UI:
         textY = (area[1] / 2) - (self.text.get_height() / 2)
         self.surface.fill(self.bg)
         self.surface.blit(self.text.image, (textX, textY))
+        self.image = Image(self.surface, self.rect)
         self._instances.add(weakref.ref(self))
 
     def move(self, pos):
@@ -66,6 +77,7 @@ class UI:
         textX = (self.rect.width / 2) - (self.text.get_width() / 2)
         textY = (self.rect.height / 2) - (self.text.get_height() / 2)
         self.surface.blit(self.text, (textX, textY))
+        self.image = Image(self.surface)
 
     def activate(self):
         self._active.add(self)
@@ -75,7 +87,7 @@ class UI:
             self._active.remove(self)
 
     def draw_self(self):
-        app.blit(self.surface, self.rect)
+        self.image.blit(self.surface)
 
     @classmethod
     def draw(cls):
@@ -87,32 +99,6 @@ class UI:
         for ui in UI._active:
             if ui.rect.collidepoint(location):
                 pg.event.post(ui.event)
-
-
-def quit_game():
-    pg.quit()
-    sys.exit()
-
-
-# Main Menu
-menuTitle = UI((disWidth / 2, disHeight * .2), (600, 200), 'The Dungeon', None, bg=blue, fg=white)
-menuStart = UI((disWidth / 2, disHeight * .55), (400, 100), 'Start Game', 'menuStart', bg=white, fg=black)
-menuQuit = UI((disWidth / 2, disHeight * .75), (400, 100), 'Quit Game', 'menuQuit', bg=white, fg=black)
-
-# Pause Menu
-pausedResume = UI((disWidth / 2, disHeight * .5), (400, 100), 'Resume', 'pausedResume', bg=white, fg=black)
-pausedReturn = UI((disWidth / 2, disHeight * .7), (400, 100), 'Return to Title', 'pausedReturn', bg=white, fg=black)
-
-menu = [
-    menuTitle,
-    menuStart,
-    menuQuit
-]
-
-paused = [
-    pausedResume,
-    pausedReturn
-]
 
 
 def activate(ui, *args):

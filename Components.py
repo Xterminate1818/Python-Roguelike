@@ -1,10 +1,10 @@
 import weakref
 import pygame as pg
-from init import *
 import time
 import math
 from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder
+from Common import vector
 
 
 class Movement:
@@ -97,6 +97,45 @@ class Attribute:
         pass
 
 
+class Image(Attribute):
+    surf = None
+    _instances = set()
+
+    def __init__(self, image, location=None):
+        self.image = image
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
+        self.rect = image.get_rect()
+        self.location = location
+        self._instances.add(weakref.ref(self))
+
+    def blit(self, location=None):
+        if location is None and self.location is not None:
+            location = self.location
+        if self.location is None:
+            print('No position available')
+        elif self.surf is None:
+            print('Surface not set')
+        else:
+            self.surf.blit(self.image, location)
+
+    @classmethod
+    def blit_all(cls):
+        for img in cls.instances():
+            img.blit()
+
+    @classmethod
+    def instances(cls):
+        dead = set()
+        for ref in cls.healthComp:
+            obj = ref()
+            if obj is not None:
+                yield obj
+            else:
+                dead.add(ref)
+        cls.healthComp -= dead
+
+
 class Health(Attribute):
     def __init__(self, health, hitbox, damageCD, *args):
         self.maxHealth = health
@@ -186,7 +225,7 @@ class PathFinding(Attribute):
 class RangedAttack(Damage):
     def __init__(self, surface, **kwargs):
         self.lastAttack = time.time()
-        self.surface = surface
+        self.image = Image(surface)
         speed = 10
         self.cd = 0.3
         damage = 1
@@ -207,7 +246,7 @@ class RangedAttack(Damage):
     def fire(self, loc, dest):
         if time.time() - self.lastAttack > self.cd:
             vec = vector(loc, dest)
-            rect = pg.Rect(loc[0], loc[1], self.surface.get_width(), self.surface.get_height())
+            rect = pg.Rect(loc[0], loc[1], self.image.width, self.image.height)
             rect.center = loc
             self.list.append([rect, vec])
             self.lastAttack = time.time()
@@ -218,7 +257,7 @@ class RangedAttack(Damage):
             if _col:
                 self.list.remove(p)
             else:
-                app.blit(self.surface, p[0])
+                self.image.blit(p[0])
 
 
 #############################################
