@@ -1,6 +1,7 @@
 from Components import *
 from Common import *
 
+
 class Entity:
     _instances = set()
 
@@ -48,9 +49,10 @@ class Entity:
 class Player(Entity):
     _instances = set()
 
-    def __init__(self, pos):
+    def __init__(self, pos, manager):
         self.lookingRight = pg.image.load("textures/sprites/Player/wizard.bmp").convert_alpha()
         self.lookingLeft = pg.transform.flip(self.lookingRight, True, False)
+        self.manager = manager
         self.image = self.lookingRight
         super().__init__(pos, self.lookingRight)
         self.hitbox = self.rect.inflate(-20, -10)
@@ -59,7 +61,7 @@ class Player(Entity):
         self.health = Health(5, self.hitbox, 1, Player)
         self.movement = Movement(self.speed)
         self.attackObj = RangedAttack(fireSpell)
-        self.idleRight = Animation(playerIdleRight, 8)
+        self.idleRight = Animation(fireballMoving, 8)
         self.idleLeft = Animation(playerIdleLeft, 8)
         self.movingRight = Animation(playerRunningRight, 8)
         self.movingLeft = Animation(playerRunningLeft, 8)
@@ -103,7 +105,7 @@ class Player(Entity):
         self.rect = self.hitbox.inflate(20, 10)
         self.attackObj.tick()
         self.image.image = frame
-        self.image.blit(self.rect)
+        self.manager.push_fg([frame, self.rect])
         if self.health.health <= 0:
             self.kill()
 

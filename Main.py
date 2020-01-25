@@ -50,11 +50,12 @@ activate(menu)
 clock = pg.time.Clock()
 start_time = time.time()
 appTime = time.time() - start_time
+graphics = GraphicsManager(app)
 # Init display
 pg.display.set_caption("Game Project")
 Entity.kill_all()
 # Init player
-p = Player(currentRoom.spawnPoint)
+p = Player(currentRoom.spawnPoint, graphics)
 
 # Game Loop
 while True:
@@ -138,9 +139,8 @@ while True:
         p.hitbox.x, p.hitbox.y = currentRoom.spawnPoint
         Movement.collision = currentRoom.collision
     offset = (disWidth / 2 - p.rect.centerx, disHeight / 2 - p.rect.centery)
-    print(disWidth / 2 - p.rect.centerx, disHeight / 2 - p.rect.centery)
     currentRoom.exitOpen = True
     currentRoom.draw()
     Entity.tick_all()
-    pg.display.update()
+    graphics.draw()
     clock.tick(fps)

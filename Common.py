@@ -156,8 +156,12 @@ playerRunningLeft = []
 for index, item in enumerate(playerIdleRight):
     playerRunningLeft.insert(index, pg.transform.flip(item, True, False))
 
-fireball = Spritesheet("textures/projectiles/Small_Fireball_10x26.png")
-fireballMoving = fireball.load_strip(pg.Rect(0, 0, 100, 26), 10) 
+fireballSpriteSheet = Spritesheet("textures/projectiles/Small_Fireball_10x26.png")
+fireballMoving = []
+for y in range(6):
+    fireballMoving.append(fireballSpriteSheet.load_strip(pg.Rect(0, y * 26, 100, 26), 10))
+print(fireballMoving)
+
 
 
 # UI imports

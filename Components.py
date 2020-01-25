@@ -5,6 +5,7 @@ import math
 from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder
 from Common import vector
+import queue
 
 
 class Movement:
@@ -97,6 +98,29 @@ class Attribute:
         pass
 
 
+class GraphicsManager:
+    def __init__(self, surface):
+        self.surf = surface
+        self.bg = queue.Queue(0)
+        self.fg = queue.Queue(0)
+
+    def push_bg(self, image):
+        self.bg.put(image)
+
+    def push_fg(self, image):
+        self.fg.put(image)
+
+    def draw(self):
+        while not self.bg.empty():
+            surf, dest = self.bg.get_nowait()
+            self.surf.blit(surf, dest)
+        while not self.fg.empty():
+            surf, dest = self.fg.get_nowait()
+            print(surf)
+            self.surf.blit(surf, dest)
+        pg.display.flip()
+
+
 class Image(Attribute):
     surf = None
     _instances = set()
@@ -116,8 +140,15 @@ class Image(Attribute):
         if self.surf is None:
             print('Surface not set')
         else:
-            print(location)
             self.surf.blit(self.image, location)
+
+    def __getitem__(self, x):
+        if x == 0:
+            return self.image
+        if x == 1:
+            return self.rect
+        else:
+            raise IndexError
 
     @classmethod
     def blit_all(cls):
