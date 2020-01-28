@@ -34,7 +34,6 @@ red = (255, 0, 0)
 green = (0, 255, 0)
 blue = (0, 0, 255)
 
-fps = 60
 app = pg.display.set_mode((disWidth, disHeight))
 Image.surf = app
 

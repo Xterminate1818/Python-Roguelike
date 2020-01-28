@@ -61,7 +61,7 @@ class Player(Entity):
         self.health = Health(5, self.hitbox, 1, Player)
         self.movement = Movement(self.speed)
         self.attackObj = RangedAttack(fireSpell)
-        self.idleRight = Animation(fireballMoving, 8)
+        self.idleRight = Animation(playerIdleRight, 8)
         self.idleLeft = Animation(playerIdleLeft, 8)
         self.movingRight = Animation(playerRunningRight, 8)
         self.movingLeft = Animation(playerRunningLeft, 8)

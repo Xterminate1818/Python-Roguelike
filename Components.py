@@ -125,9 +125,11 @@ class Image(Attribute):
     surf = None
     _instances = set()
 
-    def __init__(self, image):
+    def __init__(self, image, layer,  manager):
         self.image = image
         self.rect = image.get_rect()
+        self.layer = layer
+        self.manager = manager
         self._instances.add(weakref.ref(self))
 
     def get_height(self):
@@ -140,7 +142,10 @@ class Image(Attribute):
         if self.surf is None:
             print('Surface not set')
         else:
-            self.surf.blit(self.image, location)
+            if self.layer == 'bg':
+                self.manager.push_bg([self.image, self.])
+            elif self.layer == 'fg':
+                self.manager.push_fg()
 
     def __getitem__(self, x):
         if x == 0:
