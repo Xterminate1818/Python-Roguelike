@@ -103,6 +103,7 @@ class GraphicsManager:
         self.surf = surface
         self.bg = queue.Queue(0)
         self.fg = queue.Queue(0)
+        self.offset = [0, 0]
 
     def push_bg(self, image):
         self.bg.put(image)
@@ -113,11 +114,12 @@ class GraphicsManager:
     def draw(self):
         while not self.bg.empty():
             surf, dest = self.bg.get_nowait()
-            self.surf.blit(surf, dest)
+            newDest = (dest[0] + self.offset[0], dest[1] + self.offset[1])
+            self.surf.blit(surf, newDest)
         while not self.fg.empty():
             surf, dest = self.fg.get_nowait()
-            print(surf)
-            self.surf.blit(surf, dest)
+            newDest = (dest[0] + self.offset[0], dest[1] + self.offset[1])
+            self.surf.blit(surf, newDest)
         pg.display.flip()
 
 
@@ -125,7 +127,7 @@ class Image(Attribute):
     surf = None
     _instances = set()
 
-    def __init__(self, image, layer,  manager):
+    def __init__(self, image, layer, manager):
         self.image = image
         self.rect = image.get_rect()
         self.layer = layer
@@ -138,14 +140,16 @@ class Image(Attribute):
     def get_width(self):
         return self.image.get_width()
 
-    def blit(self, location=None):
-        if self.surf is None:
-            print('Surface not set')
+    def blit(self):
+        if self.layer == 'bg':
+            self.manager.push_bg([self.image, self.rect])
+        elif self.layer == 'fg':
+            self.manager.push_fg([self.image, self.rect])
         else:
-            if self.layer == 'bg':
-                self.manager.push_bg([self.image, self.])
-            elif self.layer == 'fg':
-                self.manager.push_fg()
+            print('incorrect layer value')
+
+    def clone(self):
+        return Image(self.image, self.layer, self.manager)
 
     def __getitem__(self, x):
         if x == 0:
@@ -259,9 +263,9 @@ class PathFinding(Attribute):
 
 
 class RangedAttack(Damage):
-    def __init__(self, surface, **kwargs):
+    def __init__(self, image, manager, **kwargs):
         self.lastAttack = time.time()
-        self.image = Image(surface)
+        self.image = Image(image, 'fg', manager)
         speed = 10
         self.cd = 0.3
         damage = 1
@@ -284,16 +288,19 @@ class RangedAttack(Damage):
             vec = vector(loc, dest)
             rect = pg.Rect(loc[0], loc[1], self.image.get_width(), self.image.get_height())
             rect.center = loc
-            self.list.append([rect, vec])
+            image = self.image.clone()
+            image.rect = rect
+            self.list.append([image, vec])
             self.lastAttack = time.time()
 
     def tick(self):
+        print(self.list)
         for p in self.list:
-            p[0], _col = self.movement.move(p[0], dx=p[1][0], dy=p[1][1], limit=999)
+            p[0].rect, _col = self.movement.move(p[0].rect, dx=p[1][0], dy=p[1][1], limit=999)
             if _col:
                 self.list.remove(p)
             else:
-                self.image.blit(p[0])
+                p[0].blit()
 
 
 #############################################

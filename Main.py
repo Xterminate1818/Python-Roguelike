@@ -8,14 +8,20 @@ import time
 
 pg.init()
 
+# Init clock
+clock = pg.time.Clock()
+start_time = time.time()
+appTime = time.time() - start_time
+graphics = GraphicsManager(app)
+
 # Main Menu
-menuTitle = UI((disWidth / 2, disHeight * .2), (600, 200), 'The Dungeon', None, bg=blue, fg=white)
-menuStart = UI((disWidth / 2, disHeight * .55), (400, 100), 'Start Game', 'menuStart', bg=white, fg=black)
-menuQuit = UI((disWidth / 2, disHeight * .75), (400, 100), 'Quit Game', 'menuQuit', bg=white, fg=black)
+menuTitle = UI((disWidth / 2, disHeight * .2), (600, 200), 'The Dungeon', None, graphics, bg=blue, fg=white)
+menuStart = UI((disWidth / 2, disHeight * .55), (400, 100), 'Start Game', 'menuStart', graphics, bg=white, fg=black)
+menuQuit = UI((disWidth / 2, disHeight * .75), (400, 100), 'Quit Game', 'menuQuit', graphics, bg=white, fg=black)
 
 # Pause Menu
-pausedResume = UI((disWidth / 2, disHeight * .5), (400, 100), 'Resume', 'pausedResume', bg=white, fg=black)
-pausedReturn = UI((disWidth / 2, disHeight * .7), (400, 100), 'Return to Title', 'pausedReturn', bg=white, fg=black)
+pausedResume = UI((disWidth / 2, disHeight * .5), (400, 100), 'Resume', 'pausedResume', graphics, bg=white, fg=black)
+pausedReturn = UI((disWidth / 2, disHeight * .7), (400, 100), 'Return to Title', 'pausedReturn', graphics, bg=white, fg=black)
 
 menu = [
     menuTitle,
@@ -39,17 +45,15 @@ Image.surf = app
 
 # Room init
 for r in roomDirectoryList:
-    Room.add_instance(r)
+    Room.add_instance(r, graphics)
 currentRoom = Room.get_random()
 Movement.collision = currentRoom.collision
 isPaused = False
 isMainMenu = True
 activate(menu)
-# Init clock
-clock = pg.time.Clock()
-start_time = time.time()
-appTime = time.time() - start_time
-graphics = GraphicsManager(app)
+
+Entity.gManager = graphics
+UI.gManager = graphics
 # Init display
 pg.display.set_caption("Game Project")
 Entity.kill_all()
@@ -60,9 +64,6 @@ p = Player(currentRoom.spawnPoint, graphics)
 while True:
     while isMainMenu:
         app.fill(black)
-        UI.draw()
-        pg.display.flip()
-        clock.tick(fps / 2)
         for e in pg.event.get():
             if e.type == QUIT:
                 pg.quit()
@@ -77,11 +78,13 @@ while True:
             if e.type == MOUSEBUTTONDOWN:
                 mouseLoc = pg.mouse.get_pos()
                 UI.click(mouseLoc)
+            UI.draw()
+            graphics.draw()
+            pg.display.flip()
+            clock.tick(fps / 2)
     while isPaused:
         app.fill(black)
-        UI.draw()
-        pg.display.flip()
-        clock.tick(fps / 2)
+
         for e in pg.event.get():
             if e.type == QUIT:
                 pg.quit()
@@ -102,6 +105,10 @@ while True:
             if e.type == MOUSEBUTTONDOWN:
                 mouseLoc = pg.mouse.get_pos()
                 UI.click(mouseLoc)
+            UI.draw()
+            graphics.draw()
+            pg.display.flip()
+            clock.tick(fps / 2)
     appTime = time.time() - start_time
     app.fill(black)
     # Mouse logic
@@ -128,11 +135,27 @@ while True:
                 p.dx -= -1
             if e.key == K_d:
                 p.dx -= 1
+            if e.key == K_i:
+                graphics.offset[1] += 20
+            if e.key == K_k:
+                graphics.offset[1] -= 20
+            if e.key == K_j:
+                graphics.offset[0] += 20
+            if e.key == K_l:
+                graphics.offset[0] -= 20
             if e.key == K_ESCAPE:
                 activate(paused)
                 isPaused = True
     if pg.mouse.get_pressed()[0]:
         p.attack(mouseLoc)
+    if mouseLoc[1] < disHeight * .2:
+        graphics.offset[1] += 1
+    if mouseLoc[1] > disHeight * .8:
+        graphics.offset[1] -= 1
+    if mouseLoc[0] < disWidth * .2:
+        graphics.offset[0] += 1
+    if mouseLoc[0] > disWidth * .8:
+        graphics.offset[0] -= 1
     if p.hitbox.colliderect(currentRoom.exitRect) and currentRoom.exitOpen:
         currentRoom = Room.get_random()
         p.hitbox.x, p.hitbox.y = currentRoom.spawnPoint

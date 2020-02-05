@@ -33,8 +33,9 @@ class UI:
     _instances = set()
     _active = set()
 
-    def __init__(self, pos, area, text, id, **kwargs):
+    def __init__(self, pos, area, text, id, manager, **kwargs):
         self.event = pg.event.Event(UIEvent, id=id)
+        self.manager = manager
         self.pos = pos
         self.surface = pg.Surface(area)
         self.rect = pg.Rect(pos[0], pos[1], area[0], area[1])
@@ -54,7 +55,8 @@ class UI:
         textY = (area[1] / 2) - (self.text.get_height() / 2)
         self.surface.fill(self.bg)
         self.surface.blit(self.text.image, (textX, textY))
-        self.image = Image(self.surface)
+        self.image = Image(self.surface, 'fg', self.manager)
+        self.image.rect = self.rect
         self.location = self.rect
         self._instances.add(weakref.ref(self))
 
@@ -72,6 +74,8 @@ class UI:
                 self.fg = value
             if key == 'bg':
                 self.bg = value
+            if key == 'manager':
+                self.manager = value
         self.surface.fill(self.bg)
         if text is not None:
             self.text = Text(text, self.fg, self.textSize)
@@ -89,7 +93,7 @@ class UI:
             self._active.remove(self)
 
     def draw_self(self):
-        self.image.blit(self.rect)
+        self.image.blit()
 
     @classmethod
     def draw(cls):

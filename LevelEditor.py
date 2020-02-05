@@ -54,7 +54,8 @@ class Room:
     _instances = set()
     clsList = []
 
-    def __init__(self, _file):
+    def __init__(self, _file, manager):
+        self.manager = manager
         self.file = mpu.io.read(_file)
         self.dict = dict(self.file)
 
@@ -112,16 +113,16 @@ class Room:
         return random.choice(instances)
 
     @classmethod
-    def add_instance(cls, file):
-        cls.clsList.append(Room(file))
+    def add_instance(cls, file, manager):
+        cls.clsList.append(Room(file, manager))
 
     def draw(self):
         for y, row in enumerate(self.tileMap):
             for x, col in enumerate(row):
-                drawpos = [x * tileGrid, y * tileGrid]
+                drawpos = [x * tileGrid + self.manager.offset[0], y * tileGrid + self.manager.offset[1]]
                 app.blit(tileData[col][0], drawpos)
         if self.exitOpen:
-            drawpos = [self.exitRect[0], self.exitRect[1]]
+            drawpos = [self.exitRect[0] + self.manager.offset[0], self.exitRect[1] + self.manager.offset[1]]
             app.blit(ladder, drawpos)
 
 

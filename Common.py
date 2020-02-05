@@ -156,14 +156,6 @@ playerRunningLeft = []
 for index, item in enumerate(playerIdleRight):
     playerRunningLeft.insert(index, pg.transform.flip(item, True, False))
 
-fireballSpriteSheet = Spritesheet("textures/projectiles/Small_Fireball_10x26.png")
-fireballMoving = []
-for y in range(6):
-    fireballMoving.append(fireballSpriteSheet.load_strip(pg.Rect(0, y * 26, 100, 26), 10))
-print(fireballMoving)
-
-
-
 # UI imports
 heartFull = pg.image.load("textures/ui/full heart.bmp")
 heartHalf = pg.image.load("textures/ui/half heart.bmp")

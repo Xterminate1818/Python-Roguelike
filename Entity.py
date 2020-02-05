@@ -5,8 +5,8 @@ from Common import *
 class Entity:
     _instances = set()
 
-    def __init__(self, pos, image):
-        self.image = Image(image)
+    def __init__(self, pos, image, manager):
+        self.image = Image(image, 'fg', manager)
         self.rect = self.image.rect
         self.rect.x, self.rect.y = pos
         self.image.location = self.rect
@@ -54,13 +54,13 @@ class Player(Entity):
         self.lookingLeft = pg.transform.flip(self.lookingRight, True, False)
         self.manager = manager
         self.image = self.lookingRight
-        super().__init__(pos, self.lookingRight)
+        super().__init__(pos, self.lookingRight, self.manager)
         self.hitbox = self.rect.inflate(-20, -10)
         self.initTime = time.time()
 
         self.health = Health(5, self.hitbox, 1, Player)
         self.movement = Movement(self.speed)
-        self.attackObj = RangedAttack(fireSpell)
+        self.attackObj = RangedAttack(fireSpell, self.manager)
         self.idleRight = Animation(playerIdleRight, 8)
         self.idleLeft = Animation(playerIdleLeft, 8)
         self.movingRight = Animation(playerRunningRight, 8)
