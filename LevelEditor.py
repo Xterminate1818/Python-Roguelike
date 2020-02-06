@@ -8,48 +8,6 @@ from pygame.locals import *
 import weakref
 
 
-class Matrix:
-
-    def __init__(self, xsize, ysize):
-        self.grid = []
-        _col = []
-        for n in range(ysize):
-            self.grid.append([])
-        for y in range(len(self.grid)):
-            for n in range(xsize):
-                self.grid[y].append(None)
-        self.width = len(self.grid)
-        self.height = len(self.grid[0])
-
-    def print(self):
-        print(self.grid)
-
-    def clear(self):
-        for y in range(self.height):
-            for x in range(self.width):
-                self.grid[x][y] = None
-
-    def fill(self, content):
-        for y in range(self.height):
-            for x in range(self.width):
-                self.grid[x][y] = content
-
-    def set(self, x, y, content):
-        self.grid[y][x] = content
-
-    def __getitem__(self, y):
-        return self.grid[y]
-
-    def __len__(self):
-        return len(self.grid)
-
-    def replace(self, matrix):
-        self.grid = matrix
-
-    def get(self):
-        return self.grid
-
-
 class Room:
     _instances = set()
     clsList = []
@@ -123,7 +81,7 @@ class Room:
                 app.blit(tileData[col][0], drawpos)
         if self.exitOpen:
             drawpos = [self.exitRect[0] + self.manager.offset[0], self.exitRect[1] + self.manager.offset[1]]
-            app.blit(ladder, drawpos)
+            app.blit(stairs, drawpos)
 
 
 spawn_icon = pg.image.load('textures/ui/spawn icon.bmp')
@@ -473,7 +431,7 @@ selection = StringVar(root)
 selection.set(tile_list[0])  # default value
 
 selector = OptionMenu(painting_frame, selection, *tile_list)
-fill_button = Button(painting_frame, text="Fill", command=lambda: level_editor.fill_room())
+fill_button = Button(painting_frame, text="Fill", command=level_editor.fill_room)
 clear_button = Button(painting_frame, text="Clear", command=level_editor.clear_room)
 add_type = StringVar()
 add_type.set('tile')

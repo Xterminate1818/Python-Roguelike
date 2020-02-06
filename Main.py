@@ -113,6 +113,7 @@ while True:
     app.fill(black)
     # Mouse logic
     mouseLoc = pg.mouse.get_pos()
+    adjustedMouseLoc = [mouseLoc[0] + -graphics.offset[0], mouseLoc[1] + -graphics.offset[1]]
     for e in pg.event.get():
         if e.type == QUIT:
             pg.quit()
@@ -147,20 +148,13 @@ while True:
                 activate(paused)
                 isPaused = True
     if pg.mouse.get_pressed()[0]:
-        p.attack(mouseLoc)
-    if mouseLoc[1] < disHeight * .2:
-        graphics.offset[1] += 1
-    if mouseLoc[1] > disHeight * .8:
-        graphics.offset[1] -= 1
-    if mouseLoc[0] < disWidth * .2:
-        graphics.offset[0] += 1
-    if mouseLoc[0] > disWidth * .8:
-        graphics.offset[0] -= 1
+        p.attack(adjustedMouseLoc)
+    graphics.offset[0] = (disWidth / 2 - p.rect.centerx) + (disWidth / 2 - mouseLoc[0]) / 5
+    graphics.offset[1] = (disHeight / 2) - p.rect.centery + (disHeight / 2 - mouseLoc[1]) / 5
     if p.hitbox.colliderect(currentRoom.exitRect) and currentRoom.exitOpen:
         currentRoom = Room.get_random()
         p.hitbox.x, p.hitbox.y = currentRoom.spawnPoint
         Movement.collision = currentRoom.collision
-    offset = (disWidth / 2 - p.rect.centerx, disHeight / 2 - p.rect.centery)
     currentRoom.exitOpen = True
     currentRoom.draw()
     Entity.tick_all()

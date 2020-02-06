@@ -290,14 +290,16 @@ class RangedAttack(Damage):
             rect.center = loc
             image = self.image.clone()
             image.rect = rect
-            self.list.append([image, vec])
+            position = [float(rect.centerx), float(rect.centery)]
+            self.list.append([image, vec, position])
             self.lastAttack = time.time()
 
     def tick(self):
-        print(self.list)
         for p in self.list:
-            p[0].rect, _col = self.movement.move(p[0].rect, dx=p[1][0], dy=p[1][1], limit=999)
-            if _col:
+            p[2][0] += p[1][0] * self.movement.speed
+            p[2][1] += p[1][1] * self.movement.speed
+            p[0].rect.center = p[2]
+            if len(self.movement.check_collision(p[0].rect)) > 0:
                 self.list.remove(p)
             else:
                 p[0].blit()

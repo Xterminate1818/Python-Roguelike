@@ -48,6 +48,49 @@ class Spritesheet(object):
         return self.images_at(strip)
 
 
+class Matrix:
+
+    def __init__(self, xsize, ysize):
+        self.grid = []
+        _col = []
+        for n in range(ysize):
+            self.grid.append([])
+        for y in range(len(self.grid)):
+            for n in range(xsize):
+                self.grid[y].append(None)
+        self.width = len(self.grid)
+        self.height = len(self.grid[0])
+
+    def print(self):
+        print(self.grid)
+
+    def clear(self):
+        for y in range(self.height):
+            for x in range(self.width):
+                self.grid[x][y] = None
+
+    def fill(self, content):
+        for y in range(self.height):
+            for x in range(self.width):
+                self.grid[x][y] = content
+
+    def set(self, x, y, content):
+        self.grid[y][x] = content
+
+    def __getitem__(self, y):
+        return self.grid[y]
+
+    def __len__(self):
+        return len(self.grid)
+
+    def replace(self, matrix):
+        self.grid = matrix
+
+    def get(self):
+        return self.grid
+
+
+
 black = (0, 0, 0)
 white = (255, 255, 255)
 red = (255, 0, 0)
@@ -76,7 +119,7 @@ for r, d, f in os.walk(roomsDirectory):
 # Props:
 chest = pg.image.load('textures/sprites/Props/chest_rare.bmp')
 
-ladder = pg.image.load('textures/sprites/Props/ladder.bmp')
+stairs = pg.image.load('textures/tiles/Dungeon/stairs.bmp')
 
 spikeRegular = pg.image.load('textures/sprites/Props/spike_regular.bmp')
 spikePoison = pg.image.load('textures/sprites/Props/spike_poison.bmp')
