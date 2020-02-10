@@ -84,7 +84,6 @@ class Room:
             drawpos = [self.exitRect[0] + self.manager.offset[0], self.exitRect[1] + self.manager.offset[1]]
             app.blit(stairs, drawpos)
 
-
 tile_list = []
 for t in tileData:
     if tileData[t][1] != -1:
@@ -98,12 +97,11 @@ enemy_list = [None]
 for e in enemyData:
     enemy_list.append(e)
 
-pg.display.set_caption("Preview")
-app = pg.display.set_mode((disWidth, disHeight))
-clock = pg.time.Clock()
-
 # Tkinter window
-menu = Tk()
-menu.title("Editor")
-
+root = Tk()
+root.title("Editor")
+root.geometry('500x500')
+sizeLabel = Label(root, text='Room Size:')
+sizeLabel.pack()
+root.mainloop()
 

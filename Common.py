@@ -100,7 +100,6 @@ blue = (0, 0, 255)
 fps = 60
 disWidth = 1024
 disHeight = 640
-app = pg.display.set_mode((disWidth, disHeight))
 viewRect = pg.Rect(0, 0, disWidth, disHeight)
 tileGrid = 64
 
@@ -185,8 +184,8 @@ leftU = pg.transform.flip(rightU, True, False)
 isPaused = False
 
 # Sprite imports
-fireSpell = pg.image.load("textures/projectiles/flare.bmp").convert_alpha()
-evilEye = pg.image.load("textures/sprites/Enemies/eye.bmp").convert_alpha()
+fireSpell = pg.image.load("textures/projectiles/flare.bmp")
+evilEye = pg.image.load("textures/sprites/Enemies/eye.bmp")
 
 # Animations
 playerIdleRight = [pg.image.load("textures/sprites/player/idle/f0.bmp"), pg.image.load("textures/sprites/player/idle/f1.bmp"), pg.image.load("textures/sprites/player/idle/f2.bmp"), pg.image.load("textures/sprites/player/idle/f3.bmp")]
