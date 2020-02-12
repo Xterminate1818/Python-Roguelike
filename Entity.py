@@ -105,7 +105,7 @@ class Player(Entity):
         self.rect = self.hitbox.inflate(20, 10)
         self.attackObj.tick()
         self.image.image = frame
-        self.manager.push_fg([frame, self.rect])
+        self.manager.push_fg(frame, self.rect)
         if self.health.health <= 0:
             self.kill()
 

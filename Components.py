@@ -105,11 +105,11 @@ class GraphicsManager:
         self.fg = queue.Queue(0)
         self.offset = [0, 0]
 
-    def push_bg(self, image):
-        self.bg.put(image)
+    def push_bg(self, image, location):
+        self.bg.put([image, location])
 
-    def push_fg(self, image):
-        self.fg.put(image)
+    def push_fg(self, image, location):
+        self.fg.put([image, location])
 
     def draw(self):
         while not self.bg.empty():
@@ -142,9 +142,9 @@ class Image(Attribute):
 
     def blit(self):
         if self.layer == 'bg':
-            self.manager.push_bg([self.image, self.rect])
+            self.manager.push_bg(self.image, self.rect)
         elif self.layer == 'fg':
-            self.manager.push_fg([self.image, self.rect])
+            self.manager.push_fg(self.image, self.rect)
         else:
             print('incorrect layer value')
 

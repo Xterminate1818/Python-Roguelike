@@ -78,11 +78,10 @@ class Room:
     def draw(self):
         for y, row in enumerate(self.tileMap):
             for x, col in enumerate(row):
-                drawpos = [x * tileGrid + self.manager.offset[0], y * tileGrid + self.manager.offset[1]]
-                app.blit(tileData[col][0], drawpos)
+                self.manager.push_bg(tileData[col][0], [x * tileGrid, y * tileGrid])
         if self.exitOpen:
-            drawpos = [self.exitRect[0] + self.manager.offset[0], self.exitRect[1] + self.manager.offset[1]]
-            app.blit(stairs, drawpos)
+            self.manager.push_bg(stairs, self.exitRect)
+
 
 tile_list = []
 for t in tileData:
@@ -101,7 +100,17 @@ for e in enemyData:
 root = Tk()
 root.title("Editor")
 root.geometry('500x500')
-sizeLabel = Label(root, text='Room Size:')
-sizeLabel.pack()
+sizeLabel = Label(root, text='Generate Room:', font=("Times New Roman", 30))
+xSizeLabel = Label(root, text='X size', font=("Times New Roman", 20))
+xSizeEntry = Entry(root)
+ySizeLabel = Label(root, text='Y size', font=("Times New Roman", 20))
+ySizeEntry = Entry(root)
+sizeLabel.place(relx=.5, rely=.2, anchor='center')
+xSizeLabel.place(relx=.3, rely=.35, anchor='center')
+xSizeEntry.place(relx=.3, rely=.45, anchor='center')
+ySizeLabel.place(relx=.7, rely=.35, anchor='center')
+ySizeEntry.place(relx=.7, rely=.45, anchor='center')
+root.columnconfigure(0, weight=1)
+root.columnconfigure(1, weight=1)
 root.mainloop()
 

@@ -82,7 +82,7 @@ class UI:
         textX = (self.rect.width / 2) - (self.text.get_width() / 2)
         textY = (self.rect.height / 2) - (self.text.get_height() / 2)
         self.surface.blit(self.text, (textX, textY))
-        self.image = Image(self.surface)
+        self.image = Image(self.surface, 'fg', self.manager)
         self.image.location = self.rect
 
     def activate(self):
