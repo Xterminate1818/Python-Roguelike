@@ -1,12 +1,17 @@
 from Common import *
 import pygame as pg
 import math
+import time
 from tkinter import *
 from tkinter import filedialog, messagebox
 import mpu
 from pygame.locals import *
 import weakref
+from opensimplex import OpenSimplex
 pg.init()
+
+room = [[]]
+random.seed(time.time())
 
 
 class Room:
@@ -83,34 +88,59 @@ class Room:
             self.manager.push_bg(stairs, self.exitRect)
 
 
-tile_list = []
-for t in tileData:
-    if tileData[t][1] != -1:
-        tile_list.append(t)
+def generate_map():
+    global xSizeEntry, ySizeEntry, iterationsEntry, room
+    xSize = int("".join(num for num in xSizeEntry.get() if num.isdigit()))
+    ySize = int("".join(num for num in ySizeEntry.get() if num.isdigit()))
+    iter = int("".join(num for num in iterationsEntry.get() if num.isdigit()))
+    simplex = OpenSimplex(seed=random.getrandbits(100))
+    room = [[]]
+    room = [[int(round((simplex.noise2d(x, y) + 1) / 2)) for x in range(xSize)] for y in range(ySize)]
+    del simplex
 
-prop_list = [None]
-for p in propData:
-    prop_list.append(p)
 
-enemy_list = [None]
-for e in enemyData:
-    enemy_list.append(e)
+# Pygame window
+app = pg.display.set_mode((500, 500))
+pg.display.set_caption("Preview")
+
 
 # Tkinter window
 root = Tk()
-root.title("Editor")
-root.geometry('500x500')
-sizeLabel = Label(root, text='Generate Room:', font=("Times New Roman", 30))
+root.resizable(False, False)
+root.title("Level Setup")
+sizeLabel = Label(root, text='Generate Room:', font=("Times New Roman", 20))
+sizeLabel.grid(row=0, column=0, columnspan=2)
 xSizeLabel = Label(root, text='X size', font=("Times New Roman", 20))
+xSizeLabel.grid(row=1, column=0)
 xSizeEntry = Entry(root)
+xSizeEntry.grid(row=1, column=1)
 ySizeLabel = Label(root, text='Y size', font=("Times New Roman", 20))
+ySizeLabel.grid(row=2, column=0)
 ySizeEntry = Entry(root)
-sizeLabel.place(relx=.5, rely=.2, anchor='center')
-xSizeLabel.place(relx=.3, rely=.35, anchor='center')
-xSizeEntry.place(relx=.3, rely=.45, anchor='center')
-ySizeLabel.place(relx=.7, rely=.35, anchor='center')
-ySizeEntry.place(relx=.7, rely=.45, anchor='center')
-root.columnconfigure(0, weight=1)
-root.columnconfigure(1, weight=1)
-root.mainloop()
+ySizeEntry.grid(row=2, column=1)
+iterationLabel = Label(root, text='Iterations:', font=("Times New Roman", 20))
+iterationLabel.grid(row=3, column=0)
+iterationsEntry = Entry(root)
+iterationsEntry.grid(row=3, column=1)
+generateButton = Button(root, text='Generate Level', relief='groove', font=("Times New Roman", 16), command=generate_map)
+generateButton.grid(row=4, column=0, columnspan=2, pady=10)
+
+
+while True:
+    app.fill((255, 255, 255))
+    try:
+        root.update()
+        if len(xSizeEntry.get()) == 0 or len(ySizeEntry.get()) == 0 or len(iterationsEntry.get()) == 0:
+            generateButton.config(state=DISABLED)
+        else:
+            generateButton.config(state=NORMAL)
+    except TclError:
+        exit()
+    for y, row in enumerate(room):
+        for x, col in enumerate(row):
+            if col == 1:
+                relx = round(500 / len(row))
+                rely = round(500 / len(room))
+                pg.draw.rect(app, (0, 0, 0), (x * relx, y * rely, relx, rely))
+    pg.display.flip()
 
