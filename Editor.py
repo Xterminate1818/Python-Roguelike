@@ -95,13 +95,22 @@ def generate_map():
     iter = int("".join(num for num in iterationsEntry.get() if num.isdigit()))
     simplex = OpenSimplex(seed=random.getrandbits(100))
     room = [[]]
-    room = [[int(round((simplex.noise2d(x, y) + 1) / 2)) for x in range(xSize)] for y in range(ySize)]
+    room = [[int(round((simplex.noise2d(x / iter, y / iter) + 1) / 2)) for x in range(xSize)] for y in range(ySize)]
     del simplex
+    app.fill((255, 255, 255))
+    for y, row in enumerate(room):
+        for x, col in enumerate(row):
+            if col == 1:
+                relx = round(500 / len(row))
+                rely = round(500 / len(room))
+                pg.draw.rect(app, (0, 0, 0), (x * relx, y * rely, relx, rely))
+    pg.display.flip()
 
 
 # Pygame window
 app = pg.display.set_mode((500, 500))
 pg.display.set_caption("Preview")
+app.fill((255, 255, 255))
 
 
 # Tkinter window
@@ -110,11 +119,11 @@ root.resizable(False, False)
 root.title("Level Setup")
 sizeLabel = Label(root, text='Generate Room:', font=("Times New Roman", 20))
 sizeLabel.grid(row=0, column=0, columnspan=2)
-xSizeLabel = Label(root, text='X size', font=("Times New Roman", 20))
+xSizeLabel = Label(root, text='Width:', font=("Times New Roman", 20))
 xSizeLabel.grid(row=1, column=0)
 xSizeEntry = Entry(root)
 xSizeEntry.grid(row=1, column=1)
-ySizeLabel = Label(root, text='Y size', font=("Times New Roman", 20))
+ySizeLabel = Label(root, text='Height:', font=("Times New Roman", 20))
 ySizeLabel.grid(row=2, column=0)
 ySizeEntry = Entry(root)
 ySizeEntry.grid(row=2, column=1)
@@ -127,7 +136,6 @@ generateButton.grid(row=4, column=0, columnspan=2, pady=10)
 
 
 while True:
-    app.fill((255, 255, 255))
     try:
         root.update()
         if len(xSizeEntry.get()) == 0 or len(ySizeEntry.get()) == 0 or len(iterationsEntry.get()) == 0:
@@ -136,11 +144,10 @@ while True:
             generateButton.config(state=NORMAL)
     except TclError:
         exit()
-    for y, row in enumerate(room):
-        for x, col in enumerate(row):
-            if col == 1:
-                relx = round(500 / len(row))
-                rely = round(500 / len(room))
-                pg.draw.rect(app, (0, 0, 0), (x * relx, y * rely, relx, rely))
+    for e in pg.event.get():
+        if e.type == QUIT:
+            pg.quit()
+            root.destroy()
+            sys.exit()
     pg.display.flip()
 
