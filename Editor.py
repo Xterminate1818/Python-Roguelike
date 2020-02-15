@@ -13,6 +13,15 @@ pg.init()
 room = [[]]
 random.seed(time.time())
 
+def get_chunk(grid, posx, posy):
+    chunk = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    for y in range(3):
+        for x in range(3):
+            gridx = (x - 1) + posx
+            gridy = (y - 1) + posy
+            try:
+                chunk[x][y] = grid[posx][posy]
+
 
 class Room:
     _instances = set()
@@ -89,13 +98,13 @@ class Room:
 
 
 def generate_map():
-    global xSizeEntry, ySizeEntry, iterationsEntry, room
+    global xSizeEntry, ySizeEntry, MagnificationEntry, room
     xSize = int("".join(num for num in xSizeEntry.get() if num.isdigit()))
     ySize = int("".join(num for num in ySizeEntry.get() if num.isdigit()))
-    iter = int("".join(num for num in iterationsEntry.get() if num.isdigit()))
+    magnification = int("".join(num for num in MagnificationEntry.get() if num.isdigit()))
     simplex = OpenSimplex(seed=random.getrandbits(100))
     room = [[]]
-    room = [[int(round((simplex.noise2d(x / iter, y / iter) + 1) / 2)) for x in range(xSize)] for y in range(ySize)]
+    room = [[int(round((simplex.noise2d(x / magnification, y / magnification) + 1) / 2)) for x in range(xSize)] for y in range(ySize)]
     del simplex
     app.fill((255, 255, 255))
     for y, row in enumerate(room):
@@ -104,6 +113,10 @@ def generate_map():
                 relx = round(500 / len(row))
                 rely = round(500 / len(room))
                 pg.draw.rect(app, (0, 0, 0), (x * relx, y * rely, relx, rely))
+    for i in range(1):
+        for y, row in enumerate(room):
+            for x, col in enumerate(row):
+
     pg.display.flip()
 
 
@@ -127,10 +140,10 @@ ySizeLabel = Label(root, text='Height:', font=("Times New Roman", 20))
 ySizeLabel.grid(row=2, column=0)
 ySizeEntry = Entry(root)
 ySizeEntry.grid(row=2, column=1)
-iterationLabel = Label(root, text='Iterations:', font=("Times New Roman", 20))
-iterationLabel.grid(row=3, column=0)
-iterationsEntry = Entry(root)
-iterationsEntry.grid(row=3, column=1)
+MagnificationLabel = Label(root, text='Magnification:', font=("Times New Roman", 20))
+MagnificationLabel.grid(row=3, column=0)
+MagnificationEntry = Entry(root)
+MagnificationEntry.grid(row=3, column=1)
 generateButton = Button(root, text='Generate Level', relief='groove', font=("Times New Roman", 16), command=generate_map)
 generateButton.grid(row=4, column=0, columnspan=2, pady=10)
 
@@ -138,7 +151,7 @@ generateButton.grid(row=4, column=0, columnspan=2, pady=10)
 while True:
     try:
         root.update()
-        if len(xSizeEntry.get()) == 0 or len(ySizeEntry.get()) == 0 or len(iterationsEntry.get()) == 0:
+        if len(xSizeEntry.get()) == 0 or len(ySizeEntry.get()) == 0 or len(MagnificationEntry.get()) == 0:
             generateButton.config(state=DISABLED)
         else:
             generateButton.config(state=NORMAL)
